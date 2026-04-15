@@ -5,52 +5,333 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>La purga beteliana</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
-    body { background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); color: #111; min-height: 100vh; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-    .app { width: 100%; max-width: 430px; min-height: 100vh; margin: 0 auto; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); overflow: hidden; }
-    .topbar { background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); border-bottom: 1px solid rgba(255,255,255,.18); padding: 16px 14px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 20; }
-    .topbar h1 { color: white; text-shadow: 0 2px 8px rgba(0,0,0,.25); font-size: 20px; font-weight: bold; line-height: 1.1; max-width: 210px; }
-    .topbar button, .tab, .primary, .secondary { border-radius: 12px; border: 1px solid #8f8f8f; cursor: pointer; touch-action: manipulation; }
-    .topbar button { padding: 10px 12px; font-size: 12px; min-height: 42px; font-weight: 600; background: white; color: #111827; }
-    .menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(90deg, #ede9fe 0%, #dbeafe 100%); position: sticky; top: 72px; z-index: 15; }
-    .tab { padding: 12px 8px; font-size: 12px; min-height: 44px; font-weight: 700; width: 100%; background: rgba(255,255,255,.8); }
-    .tab.active { background: linear-gradient(135deg, #c4b5fd 0%, #93c5fd 100%); color: #1e1b4b; }
-    .screen { display: none; padding: 14px 12px 28px; }
-    .screen.active { display: block; }
-    .section { margin-bottom: 14px; border-radius: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); border: 1px solid #e5e7eb; padding: 14px; background: #fafafa; }
-    .section h2 { font-size: 15px; margin-bottom: 10px; }
-    .section p { font-size: 13px; line-height: 1.45; margin-bottom: 8px; }
-    label { display: block; font-size: 13px; margin-bottom: 6px; }
-    textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px; font-size: 16px; margin-bottom: 10px; background: #fff; resize: vertical; min-height: 220px; }
-    .small { font-size: 12px; color: #555; }
-    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-    .primary, .secondary { padding: 13px 12px; font-size: 15px; min-height: 48px; width: 100%; }
-    .primary { background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: white; border: none; box-shadow: 0 8px 18px rgba(99,102,241,.25); font-weight: bold; }
-    .secondary { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); color: #111827; }
-    .status-box { background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%); color: #312e81; border-radius: 14px; border: 1px solid #cfcfcf; padding: 12px; margin-bottom: 12px; font-size: 13px; line-height: 1.45; }
-    .event-card { box-shadow: 0 12px 30px rgba(15,23,42,.08); border-radius: 16px; border: 1px solid #c8c8c8; background: #fff; margin-bottom: 12px; overflow: hidden; }
-    .event-header { background: linear-gradient(135deg, #ddd6fe 0%, #bfdbfe 100%); color: #312e81; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #c8c8c8; padding: 10px 12px; font-size: 14px; font-weight: bold; }
-    .event-body { padding: 12px; }
-    .event-body p, .death-item { font-size: 15px; line-height: 1.5; margin-bottom: 10px; }
-    .name { color: #2563eb; text-shadow: 0 0 8px rgba(37,99,235,.15); font-weight: bold; }
-    .death-item { border: 1px solid #d0b2b2; background: #fff5f5; padding: 10px; margin-bottom: 8px; border-radius: 12px; }
-    .footer-note { padding: 4px 14px 20px; font-size: 12px; color: #64748b; text-align: center; }
-    .winner-art-wrap { margin-top: 14px; border-radius: 18px; overflow: hidden; border: 1px solid #d8dbe5; background: #0f172a; box-shadow: 0 12px 30px rgba(15,23,42,.16); position: relative; animation: winnerWrapGlow 3.2s ease-in-out infinite; }
-    .winner-art-wrap::before { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.08) 40%, transparent 70%); transform: translateX(-120%); animation: winnerShine 4.6s linear infinite; pointer-events: none; z-index: 2; }
-    @keyframes winnerShine { 0% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
-    .winner-art-canvas { width: 100%; display: block; aspect-ratio: 4 / 5; background: #111827; animation: winnerCanvasFloat 3.8s ease-in-out infinite; transform-origin: center center; }
-    @keyframes winnerCanvasFloat { 0% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-6px) scale(1.01); } 100% { transform: translateY(0px) scale(1); } }
-    @keyframes winnerWrapGlow { 0% { box-shadow: 0 12px 30px rgba(15,23,42,.16), 0 0 0 rgba(250,204,21,0); } 50% { box-shadow: 0 18px 42px rgba(15,23,42,.22), 0 0 24px rgba(250,204,21,.22); } 100% { box-shadow: 0 12px 30px rgba(15,23,42,.16), 0 0 0 rgba(250,204,21,0); } }
-    .scene-art-wrap { margin-top: 12px; border-radius: 16px; overflow: hidden; border: 1px solid #dbe3f0; background: #0f172a; box-shadow: 0 10px 24px rgba(15,23,42,.12); }
-    .scene-art-canvas { width: 100%; display: block; aspect-ratio: 16 / 10; background: #111827; }
-    @media (max-width: 480px) { .app { max-width: 100%; } .topbar h1 { font-size: 18px; max-width: 180px; } .menu { top: 74px; } }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+      color: #111;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      overflow: hidden;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+      border-bottom: 1px solid rgba(255,255,255,.18);
+      padding: 16px 14px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .topbar h1 {
+      color: white;
+      text-shadow: 0 2px 8px rgba(0,0,0,.25);
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1.1;
+      max-width: 170px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .topbar button,
+    .tab,
+    .primary,
+    .secondary {
+      border-radius: 12px;
+      border: 1px solid #8f8f8f;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .topbar button {
+      padding: 10px 12px;
+      font-size: 12px;
+      min-height: 42px;
+      font-weight: 600;
+      background: white;
+      color: #111827;
+    }
+
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      background: linear-gradient(90deg, #ede9fe 0%, #dbeafe 100%);
+      position: sticky;
+      top: 73px;
+      z-index: 15;
+    }
+
+    .tab {
+      padding: 12px 8px;
+      font-size: 12px;
+      min-height: 44px;
+      font-weight: 700;
+      width: 100%;
+      background: rgba(255,255,255,.8);
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, #c4b5fd 0%, #93c5fd 100%);
+      color: #1e1b4b;
+    }
+
+    .screen {
+      display: none;
+      padding: 14px 12px 28px;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .section {
+      margin-bottom: 14px;
+      border-radius: 18px;
+      box-shadow: 0 10px 25px rgba(15,23,42,.08);
+      border: 1px solid #e5e7eb;
+      padding: 14px;
+      background: #fafafa;
+    }
+
+    .section h2 {
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .section p {
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      background: #fff;
+      resize: vertical;
+      min-height: 220px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #555;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .primary,
+    .secondary {
+      padding: 13px 12px;
+      font-size: 15px;
+      min-height: 48px;
+      width: 100%;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+      color: white;
+      border: none;
+      box-shadow: 0 8px 18px rgba(99,102,241,.25);
+      font-weight: bold;
+    }
+
+    .secondary {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #111827;
+    }
+
+    .status-box {
+      background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%);
+      color: #312e81;
+      border-radius: 14px;
+      border: 1px solid #cfcfcf;
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .event-card {
+      box-shadow: 0 12px 30px rgba(15,23,42,.08);
+      border-radius: 16px;
+      border: 1px solid #c8c8c8;
+      background: #fff;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .event-header {
+      background: linear-gradient(135deg, #ddd6fe 0%, #bfdbfe 100%);
+      color: #312e81;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #c8c8c8;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .event-body {
+      padding: 12px;
+    }
+
+    .event-body p,
+    .death-item {
+      font-size: 15px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .name {
+      color: #2563eb;
+      text-shadow: 0 0 8px rgba(37,99,235,.15);
+      font-weight: bold;
+    }
+
+    .death-item {
+      border: 1px solid #d0b2b2;
+      background: #fff5f5;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 12px;
+    }
+
+    .footer-note {
+      padding: 4px 14px 20px;
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .winner-art-wrap {
+      margin-top: 14px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #d8dbe5;
+      background: #0f172a;
+      box-shadow: 0 12px 30px rgba(15,23,42,.16);
+      position: relative;
+      animation: winnerWrapGlow 3.2s ease-in-out infinite;
+    }
+
+    .winner-art-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.08) 40%, transparent 70%);
+      transform: translateX(-120%);
+      animation: winnerShine 4.6s linear infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    @keyframes winnerShine {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(120%); }
+    }
+
+    .winner-art-canvas {
+      width: 100%;
+      display: block;
+      aspect-ratio: 4 / 5;
+      background: #111827;
+      animation: winnerCanvasFloat 3.8s ease-in-out infinite;
+      transform-origin: center center;
+    }
+
+    @keyframes winnerCanvasFloat {
+      0% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-6px) scale(1.01); }
+      100% { transform: translateY(0px) scale(1); }
+    }
+
+    @keyframes winnerWrapGlow {
+      0% { box-shadow: 0 12px 30px rgba(15,23,42,.16), 0 0 0 rgba(250,204,21,0); }
+      50% { box-shadow: 0 18px 42px rgba(15,23,42,.22), 0 0 24px rgba(250,204,21,.22); }
+      100% { box-shadow: 0 12px 30px rgba(15,23,42,.16), 0 0 0 rgba(250,204,21,0); }
+    }
+
+    .scene-art-wrap {
+      margin-top: 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #dbe3f0;
+      background: #0f172a;
+      box-shadow: 0 10px 24px rgba(15,23,42,.12);
+    }
+
+    .scene-art-canvas {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16 / 10;
+      background: #111827;
+    }
+
+    .ranking-wrap {
+      margin-top: 14px;
+    }
+
+    .ranking-wrap p {
+      font-size: 15px;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 480px) {
+      .app { max-width: 100%; }
+      .topbar h1 { font-size: 18px; max-width: 150px; }
+      .menu { top: 73px; }
+      .topbar button { font-size: 11px; padding: 9px 10px; }
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <div class="topbar">
       <h1>⚡ La purga beteliana</h1>
-      <div style="display:flex; gap:8px;">
+      <div class="topbar-actions">
         <button id="randomNamesBtn" type="button">Cargar ejemplo</button>
         <button id="rochelBtn" type="button">Rochel</button>
       </div>
@@ -115,19 +396,87 @@
     const backBtn = document.getElementById('backBtn');
     const progressBox = document.getElementById('progressBox');
 
-    const allPlaces = ['Entrada', 'Provincia', 'La jungla', 'Cuarto de las chelas', 'Baños de Provincia', 'Jadar a Ojel', 'El estanque', 'Cancha de fútbol', 'Kneset', 'Campus', 'Baños del campus', 'Cancha de volley', 'Piletas de la aldea', 'Aldea', 'Baños de la aldea'];
-    const randomPool = ['Lara', 'Tomi', 'Mica', 'Valen', 'Juli', 'Sofi', 'Emma', 'Nacho', 'Fran', 'Iara', 'Luca', 'Cami', 'Delfi', 'Thiago', 'Bruno', 'Uma', 'Renzo', 'Malena', 'Juani', 'Mora', 'Feli', 'Rochi', 'Bauti', 'Martu', 'Benja', 'Ailu', 'Santi', 'Abril', 'Toto', 'Olivia'];
-    const killWeapons = ['apuñalado con un cuchillo', 'asesinado con un fierro', 'asesinado de un disparo', 'golpeado con una botella rota', 'asesinado durante una emboscada', 'asesinado en una pelea cuerpo a cuerpo', 'ejecutado con un arma improvisada'];
-    const accidentCauses = ['murió electrocutado', 'murió al caer mientras escapaba', 'murió durante un incendio accidental', 'murió ahogado mientras se escondía', 'murió aplastado en medio del caos'];
-    const dayTemplates = ['{a} consigue recursos en {place}.', '{a} se esconde en {place}.', '{a} encuentra un arma en {place}.', '{a} roba provisiones en {place}.', '{a} vigila la zona de {place}.', '{a} intenta pasar desapercibido en {place}.'];
-    const nightTemplates = ['{a} escucha movimientos cerca de {place} y se esconde.', '{a} duerme por turnos en {place}.', '{a} acecha a otros participantes desde {place}.', '{a} pasa la noche armado en {place}.', '{a} vigila cada ruido que sale de {place}.'];
+    const allPlaces = [
+      'Entrada', 'Provincia', 'La jungla', 'Cuarto de las chelas', 'Baños de Provincia',
+      'Jadar a Ojel', 'El estanque', 'Cancha de fútbol', 'Kneset', 'Campus',
+      'Baños del campus', 'Cancha de volley', 'Piletas de la aldea', 'Aldea', 'Baños de la aldea'
+    ];
+
+    const randomPool = [
+      'Lara', 'Tomi', 'Mica', 'Valen', 'Juli', 'Sofi', 'Emma', 'Nacho', 'Fran', 'Iara',
+      'Luca', 'Cami', 'Delfi', 'Thiago', 'Bruno', 'Uma', 'Renzo', 'Malena', 'Juani', 'Mora',
+      'Feli', 'Rochi', 'Bauti', 'Martu', 'Benja', 'Ailu', 'Santi', 'Abril', 'Toto', 'Olivia'
+    ];
+
+    const rochelNames = `Alex
+Milo
+Yoni
+Maayan
+Aby
+Alma
+Cata
+Chulak
+Dan
+Dani ker
+Ivan
+Jaz
+Juli
+Leon
+Lolo
+Mateo
+Khanis
+Nacho
+Paula
+Ramalan
+Schniper
+Yair
+Siano
+Wais
+Toto
+Uri
+Widder
+Wolko
+Dani magram
+Emma
+Espe
+Ari
+Sharon`;
+
+    const killWeapons = [
+      'apuñalado con un cuchillo', 'asesinado con un fierro', 'asesinado de un disparo',
+      'golpeado con una botella rota', 'asesinado durante una emboscada',
+      'asesinado en una pelea cuerpo a cuerpo', 'ejecutado con un arma improvisada'
+    ];
+
+    const accidentCauses = [
+      'murió electrocutado', 'murió al caer mientras escapaba', 'murió durante un incendio accidental',
+      'murió ahogado mientras se escondía', 'murió aplastado en medio del caos'
+    ];
+
+    const dayTemplates = [
+      '{a} consigue recursos en {place}.',
+      '{a} se esconde en {place}.',
+      '{a} encuentra un arma en {place}.',
+      '{a} roba provisiones en {place}.',
+      '{a} vigila la zona de {place}.',
+      '{a} intenta pasar desapercibido en {place}.'
+    ];
+
+    const nightTemplates = [
+      '{a} escucha movimientos cerca de {place} y se esconde.',
+      '{a} duerme por turnos en {place}.',
+      '{a} acecha a otros participantes desde {place}.',
+      '{a} pasa la noche armado en {place}.',
+      '{a} vigila cada ruido que sale de {place}.'
+    ];
 
     let simState = null;
+
     function registerKill(killer) {
-  if (!simState || !killer) return;
-  if (!simState.killCount) simState.killCount = {};
-  simState.killCount[killer] = (simState.killCount[killer] || 0) + 1;
-}
+      if (!simState || !killer) return;
+      if (!simState.killCount) simState.killCount = {};
+      simState.killCount[killer] = (simState.killCount[killer] || 0) + 1;
+    }
 
     function openScreen(id) {
       screens.forEach(screen => screen.classList.remove('active'));
@@ -148,12 +497,25 @@
       return copy;
     }
 
-    function randomItem(array) { return array[Math.floor(Math.random() * array.length)]; }
-    function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-    function chance(value) { return Math.random() < value; }
+    function randomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function chance(value) {
+      return Math.random() < value;
+    }
 
     function escapeHtml(text) {
-      return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function escapeRegExp(text) {
@@ -176,11 +538,29 @@
     }
 
     function getConfig() {
-      return { days: 5, dayEventCount: 3, nightEventCount: 3, allianceChanceDay: 0.4, allianceChanceNight: 0.18, betrayalChanceNight: 0.45, romanceChanceNight: 0.28, theftChanceDay: 0.28, accidentChanceDay: 0.16, accidentChanceNight: 0.1, directKillChanceDay: 0.35, directKillChanceNight: 0.55 };
+      return {
+        days: 5,
+        dayEventCount: 3,
+        nightEventCount: 3,
+        allianceChanceDay: 0.4,
+        allianceChanceNight: 0.18,
+        betrayalChanceNight: 0.45,
+        romanceChanceNight: 0.28,
+        theftChanceDay: 0.28,
+        accidentChanceDay: 0.16,
+        accidentChanceNight: 0.1,
+        directKillChanceDay: 0.35,
+        directKillChanceNight: 0.55
+      };
     }
 
-    function makeAllianceKey(a, b) { return [a, b].sort().join('||'); }
-    function getAliveNames(state) { return [...state.alive]; }
+    function makeAllianceKey(a, b) {
+      return [a, b].sort().join('||');
+    }
+
+    function getAliveNames(state) {
+      return [...state.alive];
+    }
 
     function getAlliancePairs(state) {
       const pairs = [];
@@ -200,7 +580,9 @@
       return true;
     }
 
-    function removeAlliance(state, a, b) { return state.alliances.delete(makeAllianceKey(a, b)); }
+    function removeAlliance(state, a, b) {
+      return state.alliances.delete(makeAllianceKey(a, b));
+    }
 
     function removeDeadFromAlliances(state, deadName) {
       const toDelete = [];
@@ -215,32 +597,52 @@
       const a = randomItem(alive);
       let b = randomItem(alive.filter(name => name !== a));
       if (!b) b = a;
-      return template.replace('{a}', a).replace('{b}', b).replace('{place}', randomItem(places));
+      return template
+        .replace('{a}', a)
+        .replace('{b}', b)
+        .replace('{place}', randomItem(places));
     }
 
-    function createGenericPhaseLines(type, alive, places, config) {
+    function createGenericPhaseLines(type, state, countOverride) {
+      const alive = getAliveNames(state);
+      if (!alive.length) return [];
+
       const source = type === 'day' ? dayTemplates : nightTemplates;
-      const total = type === 'day' ? config.dayEventCount : config.nightEventCount;
+      const total = typeof countOverride === 'number'
+        ? countOverride
+        : (type === 'day' ? state.config.dayEventCount : state.config.nightEventCount);
+
       const lines = [];
-      for (let i = 0; i < total; i++) lines.push(fillTemplate(randomItem(source), alive, places));
+      for (let i = 0; i < total; i++) {
+        const currentAlive = getAliveNames(state);
+        if (!currentAlive.length) break;
+        lines.push(fillTemplate(randomItem(source), currentAlive, state.places));
+      }
       return lines;
     }
 
     function createDay3SpecialEvent(state) {
       if (state.alive.length < 1) return { lines: [], deaths: [] };
+
       const roll = Math.random();
       const lines = [];
       const deaths = [];
 
       if (roll < 0.4) {
         const players = shuffle([...state.alive]).slice(0, 2);
-        if (players.length < 2) return { lines: ['No hubo suficientes participantes para el Dogeball especial.'], deaths };
+        if (players.length < 2) {
+          lines.push('No hubo suficientes participantes para el Dogeball especial.');
+          return { lines, deaths };
+        }
+
         const winner = randomItem(players);
         const loser = players.find(player => player !== winner);
         const loserIndex = state.alive.indexOf(loser);
+
         lines.push(`${players[0]} y ${players[1]} se enfrentarán en un 1v1 de Dogeball en la cancha. El perdedor morirá y el ganador se llevará todos los recursos del centro.`);
         lines.push(`El partido empieza con una tensión total: ${players[0]} y ${players[1]} se estudian, amagan, esquivan y aceleran de golpe en un cruce rapidísimo. La pelota cambia de dueño varias veces hasta que, en un instante decisivo, todo se define en un solo movimiento.`);
         lines.push(`${winner} gana el Dogeball y se lleva los recursos.`);
+
         if (loserIndex !== -1) {
           state.alive.splice(loserIndex, 1);
           removeDeadFromAlliances(state, loser);
@@ -251,7 +653,9 @@
         const affectedCount = Math.max(1, Math.min(state.alive.length, randomInt(1, 3)));
         const affected = shuffle([...state.alive]).slice(0, affectedCount);
         lines.push('Un grupo de ladrones entra al predio durante el caos del Día 3.');
-        affected.forEach(name => lines.push(`${name} es sorprendido por los ladrones y pierde todos sus objetos.`));
+        affected.forEach(name => {
+          lines.push(`${name} es sorprendido por los ladrones y pierde todos sus objetos.`);
+        });
       } else {
         const finder = randomItem(state.alive);
         lines.push(`${finder} encuentra una caja misteriosa escondida en el predio.`);
@@ -267,26 +671,37 @@
           lines.push('La caja contenía recursos muy útiles que le dan ventaja.');
         }
       }
+
       return { lines, deaths };
     }
 
     function killVictim(state, victim, forcedKiller) {
       if (!victim || !state.alive.includes(victim) || state.alive.length <= 1) return null;
+
       const victimIndex = state.alive.indexOf(victim);
       state.alive.splice(victimIndex, 1);
       removeDeadFromAlliances(state, victim);
+
       const survivors = [...state.alive];
       const useKiller = forcedKiller || Math.random() < 0.78;
+
       if (useKiller && survivors.length > 0) {
         const killer = randomItem(survivors);
         const place = randomItem(state.places);
         const weapon = randomItem(killWeapons);
         registerKill(killer);
-return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} — ${weapon}.` };
+        return {
+          event: `${killer} mata a ${victim} en ${place}.`,
+          death: `${victim} — ${weapon}.`
+        };
       }
+
       const cause = randomItem(accidentCauses);
       const place = randomItem(state.places);
-      return { event: `${victim} ${cause} en ${place}.`, death: `${victim} — ${cause}.` };
+      return {
+        event: `${victim} ${cause} en ${place}.`,
+        death: `${victim} — ${cause}.`
+      };
     }
 
     function tryCreateAllianceEvent(state, type) {
@@ -294,6 +709,7 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       if (alive.length < 2) return null;
       const chanceValue = type === 'day' ? state.config.allianceChanceDay : state.config.allianceChanceNight;
       if (!chance(chanceValue)) return null;
+
       const shuffled = shuffle(alive);
       for (let i = 0; i < shuffled.length; i++) {
         for (let j = i + 1; j < shuffled.length; j++) {
@@ -320,13 +736,19 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
     function tryBetrayalEvent(state) {
       const pairs = getAlliancePairs(state);
       if (!pairs.length || !chance(state.config.betrayalChanceNight) || state.alive.length <= 1) return null;
+
       const [a, b] = randomItem(pairs);
       const betrayer = Math.random() < 0.5 ? a : b;
       const victim = betrayer === a ? b : a;
       removeAlliance(state, a, b);
+
       const result = killVictim(state, victim, true);
       if (!result) return null;
-      return { line: `${betrayer} traiciona a ${victim} en ${randomItem(state.places)}. ${result.event}`, death: result.death };
+
+      return {
+        line: `${betrayer} traiciona a ${victim} en ${randomItem(state.places)}. ${result.event}`,
+        death: result.death
+      };
     }
 
     function tryBreakAllianceEvent(state) {
@@ -361,11 +783,17 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
     function buildDeathPlan(totalDeaths, days) {
       const plan = new Array(days).fill(0);
       if (totalDeaths <= 0) return plan;
+
       const base = Math.floor(totalDeaths / days);
       const remainder = totalDeaths % days;
+
       for (let i = 0; i < days; i++) plan[i] = base;
+
       const order = [1, 2, 3, 0, 4];
-      for (let i = 0; i < remainder; i++) plan[order[i % order.length]] += 1;
+      for (let i = 0; i < remainder; i++) {
+        plan[order[i % order.length]] += 1;
+      }
+
       return plan;
     }
 
@@ -401,11 +829,13 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
 
     function drawWinnerArt(canvas, winnerName, frame = 0) {
       if (!canvas) return;
+
       const ctx = canvas.getContext('2d');
       const width = 800;
       const height = 1000;
       canvas.width = width;
       canvas.height = height;
+
       const sky = ctx.createLinearGradient(0, 0, 0, height);
       sky.addColorStop(0, '#020617');
       sky.addColorStop(0.28, '#1e1b4b');
@@ -413,11 +843,13 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       sky.addColorStop(1, '#0f172a');
       ctx.fillStyle = sky;
       ctx.fillRect(0, 0, width, height);
+
       const moonGlow = ctx.createRadialGradient(630, 150, 20, 630, 150, 180);
       moonGlow.addColorStop(0, 'rgba(255,255,255,0.75)');
       moonGlow.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = moonGlow;
       ctx.fillRect(0, 0, width, height);
+
       for (let i = 0; i < 90; i++) {
         const angle = i * 0.35 + frame * 0.01;
         const x = (Math.sin(angle) * 0.5 + 0.5) * width;
@@ -428,20 +860,24 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
       }
+
       const ground = ctx.createLinearGradient(0, 720, 0, height);
       ground.addColorStop(0, 'rgba(15,23,42,0.1)');
       ground.addColorStop(1, 'rgba(2,6,23,0.85)');
       ctx.fillStyle = ground;
       ctx.fillRect(0, 720, width, 280);
+
       const cx = width / 2;
       const cy = 560;
       const cupFloat = Math.sin(frame * 0.06) * 8;
       const cupX = cx + 235;
       const cupY = cy - 285 + cupFloat;
+
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
       ctx.beginPath();
       ctx.ellipse(cx, 900, 180, 34, 0, 0, Math.PI * 2);
       ctx.fill();
+
       ctx.beginPath();
       ctx.fillStyle = '#0b1220';
       ctx.moveTo(cx - 170, 920);
@@ -450,15 +886,18 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       ctx.lineTo(cx + 170, 920);
       ctx.closePath();
       ctx.fill();
+
       const jacket = ctx.createLinearGradient(cx - 90, cy + 30, cx + 90, cy + 220);
       jacket.addColorStop(0, '#111827');
       jacket.addColorStop(1, '#1f2937');
       ctx.fillStyle = jacket;
       ctx.fillRect(cx - 92, cy + 30, 184, 190);
+
       ctx.beginPath();
       ctx.fillStyle = '#f3c78f';
       ctx.arc(cx, cy - 42, 72, 0, Math.PI * 2);
       ctx.fill();
+
       ctx.beginPath();
       ctx.fillStyle = '#111827';
       ctx.arc(cx, cy - 72, 82, Math.PI, Math.PI * 2);
@@ -466,31 +905,38 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       ctx.quadraticCurveTo(cx, cy - 115, cx - 82, cy - 20);
       ctx.closePath();
       ctx.fill();
+
       ctx.strokeStyle = '#f3c78f';
       ctx.lineWidth = 24;
       ctx.lineCap = 'round';
+
       ctx.beginPath();
       ctx.moveTo(cx - 70, cy + 90);
       ctx.lineTo(cx - 195, cy + 35);
       ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(cx + 70, cy + 90);
       ctx.lineTo(cx + 150, cy - 30 + cupFloat * 0.35);
       ctx.lineTo(cx + 220, cy - 210 + cupFloat * 0.4);
       ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(cx - 42, 920);
       ctx.lineTo(cx - 64, 770);
       ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(cx + 42, 920);
       ctx.lineTo(cx + 64, 770);
       ctx.stroke();
+
       const gold = ctx.createLinearGradient(cupX - 70, cupY, cupX + 70, cupY + 170);
       gold.addColorStop(0, '#fde68a');
       gold.addColorStop(0.45, '#facc15');
       gold.addColorStop(1, '#ca8a04');
       ctx.fillStyle = gold;
+
       ctx.beginPath();
       ctx.moveTo(cupX - 62, cupY);
       ctx.lineTo(cupX + 62, cupY);
@@ -498,6 +944,7 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       ctx.lineTo(cupX - 40, cupY + 100);
       ctx.closePath();
       ctx.fill();
+
       ctx.strokeStyle = '#fde68a';
       ctx.lineWidth = 12;
       ctx.beginPath();
@@ -506,13 +953,16 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       ctx.beginPath();
       ctx.arc(cupX + 66, cupY + 44, 30, -Math.PI / 2, Math.PI / 2);
       ctx.stroke();
+
       ctx.fillRect(cupX - 16, cupY + 100, 32, 72);
       ctx.fillRect(cupX - 58, cupY + 172, 116, 24);
       ctx.fillRect(cupX - 82, cupY + 196, 164, 18);
+
       ctx.fillStyle = 'rgba(255,255,255,0.28)';
       ctx.beginPath();
       ctx.arc(cupX - 18, cupY + 22, 14, 0, Math.PI * 2);
       ctx.fill();
+
       for (let i = 0; i < 8; i++) {
         const sparkleX = cupX - 60 + i * 18;
         const sparkleY = cupY - 20 - ((frame * 1.8 + i * 11) % 70);
@@ -521,13 +971,16 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
         ctx.arc(sparkleX, sparkleY, 3 + (i % 3), 0, Math.PI * 2);
         ctx.fill();
       }
+
       ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(255,255,255,0.96)';
       ctx.font = 'bold 46px Arial';
       ctx.fillText('🏆 GANADOR ABSOLUTO', cx, 92);
+
       ctx.fillStyle = '#fde68a';
       ctx.font = 'bold 82px Arial';
       ctx.fillText(winnerName.toUpperCase(), cx, 185);
+
       ctx.fillStyle = 'rgba(255,255,255,0.12)';
       ctx.font = 'bold 110px Arial';
       ctx.textAlign = 'left';
@@ -536,6 +989,7 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
 
     function getMainSceneLine(lines, title = '') {
       if (!Array.isArray(lines) || !lines.length) return 'Noche tranquila';
+
       if (String(title).includes('Día 3')) {
         const specialKeywords = ['Dogeball', 'ladrones', 'caja'];
         for (const word of specialKeywords) {
@@ -543,11 +997,13 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
           if (found) return found;
         }
       }
+
       const priority = ['Dogeball', 'ladrones', 'caja', 'mata', 'muere', 'traiciona', 'enamor', 'alianza'];
       for (const word of priority) {
         const found = lines.find(line => String(line).includes(word));
         if (found) return found;
       }
+
       return lines[0];
     }
 
@@ -568,10 +1024,12 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       const skin = colors.skin || '#f3c78f';
       const outfit = colors.outfit || '#111827';
       const hair = colors.hair || '#1f2937';
+
       ctx.beginPath();
       ctx.fillStyle = skin;
       ctx.arc(x, y - 46 * scale, 18 * scale, 0, Math.PI * 2);
       ctx.fill();
+
       ctx.beginPath();
       ctx.fillStyle = hair;
       ctx.arc(x, y - 52 * scale, 20 * scale, Math.PI, Math.PI * 2);
@@ -579,23 +1037,29 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       ctx.quadraticCurveTo(x, y - 68 * scale, x - 20 * scale, y - 42 * scale);
       ctx.closePath();
       ctx.fill();
+
       ctx.fillStyle = outfit;
       ctx.fillRect(x - 16 * scale, y - 28 * scale, 32 * scale, 52 * scale);
+
       ctx.strokeStyle = skin;
       ctx.lineWidth = 6 * scale;
       ctx.lineCap = 'round';
+
       ctx.beginPath();
       ctx.moveTo(x - 10 * scale, y - 8 * scale);
       ctx.lineTo(x - 28 * scale, y + 12 * scale);
       ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(x + 10 * scale, y - 8 * scale);
       ctx.lineTo(x + 28 * scale, y + 12 * scale);
       ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(x - 8 * scale, y + 24 * scale);
       ctx.lineTo(x - 12 * scale, y + 56 * scale);
       ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(x + 8 * scale, y + 24 * scale);
       ctx.lineTo(x + 12 * scale, y + 56 * scale);
@@ -604,17 +1068,20 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
 
     function drawSceneArt(canvas, title, mainLine, type, frame = 0) {
       if (!canvas) return;
+
       const ctx = canvas.getContext('2d');
       const width = 960;
       const height = 600;
       canvas.width = width;
       canvas.height = height;
+
       const isNight = type === 'night';
       const kind = getSceneKind(mainLine, type);
       const floatOffset = Math.sin(frame * 0.05) * 8;
       const pulse = 1 + Math.sin(frame * 0.04) * 0.04;
       const sway = Math.sin(frame * 0.03) * 18;
       const sparkle = (Math.sin(frame * 0.08) + 1) / 2;
+
       const bg = ctx.createLinearGradient(0, 0, 0, height);
       if (isNight) {
         bg.addColorStop(0, '#020617');
@@ -627,6 +1094,7 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       }
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, width, height);
+
       if (isNight) {
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
         ctx.beginPath();
@@ -638,14 +1106,38 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
         ctx.arc(810, 110, 34 + sparkle * 3, 0, Math.PI * 2);
         ctx.fill();
       }
+
+      for (let i = 0; i < 18; i++) {
+        const x = (i * 57 + frame * (isNight ? 0.4 : 0.8)) % width;
+        const y = 70 + (i % 6) * 40 + Math.sin(frame * 0.02 + i) * 8;
+        ctx.fillStyle = isNight ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.08)';
+        ctx.beginPath();
+        ctx.arc(x, y, 2 + (i % 3), 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       ctx.fillStyle = 'rgba(15,23,42,0.18)';
       ctx.fillRect(0, 430, width, 170);
       ctx.fillStyle = 'rgba(255,255,255,0.08)';
       ctx.fillRect(0, 388, width, 12);
+
       if (kind === 'announcement') {
         drawPerson(ctx, 260, 390 + floatOffset, 1.5 * pulse, { outfit: '#4f46e5' });
         drawPerson(ctx, 520, 420 - floatOffset * 0.5, 1.2 * pulse, { outfit: '#111827' });
         drawPerson(ctx, 680, 420 + floatOffset * 0.5, 1.2 * pulse, { outfit: '#111827' });
+
+        ctx.fillStyle = '#e5e7eb';
+        ctx.fillRect(180, 120, 160, 110);
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(192, 132, 136, 86);
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(340, 145);
+        ctx.lineTo(400 + sway * 0.2, 125);
+        ctx.lineTo(400 + sway * 0.2, 215);
+        ctx.lineTo(340, 195);
+        ctx.closePath();
+        ctx.fill();
       } else if (kind === 'dogeball') {
         drawPerson(ctx, 310, 395 + floatOffset, 1.45 * pulse, { outfit: '#dc2626' });
         drawPerson(ctx, 640, 395 - floatOffset, 1.45 * pulse, { outfit: '#2563eb' });
@@ -657,14 +1149,29 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
         drawPerson(ctx, 230 + sway * 0.25, 405 + floatOffset, 1.45 * pulse, { outfit: '#0f172a', hair: '#111827' });
         drawPerson(ctx, 430 - sway * 0.2, 390 - floatOffset * 0.6, 1.5 * pulse, { outfit: '#111827', hair: '#0f172a' });
         drawPerson(ctx, 760, 420 + floatOffset * 0.4, 1.3 * pulse, { outfit: '#7c3aed', hair: '#1e1b4b' });
-        ctx.fillStyle = '#f59e0b';
+        const chest = ctx.createLinearGradient(620, 300, 720, 410);
+        chest.addColorStop(0, '#fde68a');
+        chest.addColorStop(0.5, '#f59e0b');
+        chest.addColorStop(1, '#b45309');
+        ctx.fillStyle = chest;
         ctx.fillRect(620, 315 + sparkle * 4, 110, 80);
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(620, 315 + sparkle * 4, 110, 80);
       } else if (kind === 'mystery_box') {
         drawPerson(ctx, 470, 400 + floatOffset, 1.45 * pulse, { outfit: '#4f46e5' });
         ctx.fillStyle = '#f59e0b';
         ctx.fillRect(620, 320 + sparkle * 6, 110, 90);
+        ctx.strokeStyle = sparkle > 0.5 ? '#ef4444' : '#fde68a';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(620, 320 + sparkle * 6, 110, 90);
       } else if (kind === 'kill') {
         const variant = Math.abs(String(mainLine).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % 3;
+        ctx.fillStyle = 'rgba(239,68,68,0.18)';
+        ctx.beginPath();
+        ctx.arc(500, 240, 180 + sparkle * 8, 0, Math.PI * 2);
+        ctx.fill();
+
         if (variant === 0) {
           drawPerson(ctx, 330 + sway * 0.15, 410 + floatOffset, 1.55 * pulse, { outfit: '#991b1b' });
           drawPerson(ctx, 660, 455 - floatOffset * 0.8, 1.2 * pulse, { outfit: '#6b7280' });
@@ -683,9 +1190,29 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       } else if (kind === 'alliance') {
         drawPerson(ctx, 380, 400 + floatOffset * 0.4, 1.4 * pulse, { outfit: '#7c3aed' });
         drawPerson(ctx, 560, 400 - floatOffset * 0.4, 1.4 * pulse, { outfit: '#0f766e' });
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(420, 360 + floatOffset * 0.2);
+        ctx.lineTo(520, 360 - floatOffset * 0.2);
+        ctx.stroke();
+      } else if (kind === 'theft') {
+        drawPerson(ctx, 330 + sway * 0.12, 400 + floatOffset, 1.35 * pulse, { outfit: '#111827' });
+        drawPerson(ctx, 620 - sway * 0.12, 410 - floatOffset * 0.5, 1.25 * pulse, { outfit: '#2563eb' });
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(520 + Math.sin(frame * 0.05) * 10, 330, 80, 55);
+      } else if (kind === 'night_watch') {
+        drawPerson(ctx, 480, 395 + floatOffset, 1.45 * pulse, { outfit: '#0f172a' });
+        ctx.strokeStyle = '#bfdbfe';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(535, 315);
+        ctx.lineTo(620 + sway * 0.3, 255 + Math.sin(frame * 0.05) * 8);
+        ctx.stroke();
       } else {
         drawPerson(ctx, 480, 395 + floatOffset, 1.45 * pulse, { outfit: '#4f46e5' });
       }
+
       ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(255,255,255,0.96)';
       ctx.font = 'bold 42px Arial';
@@ -726,34 +1253,30 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       }
       loop();
     }
-    function appendKillRanking() {
-  if (!simState || !simState.killCount) return;
 
-  const ranking = Object.entries(simState.killCount)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  if (!ranking.length) return;
-
-  const wrap = document.createElement('div');
-  wrap.className = 'section';
-  wrap.style.marginTop = '14px';
-
-  wrap.innerHTML = `
-    <h2>🔪 Top asesinos</h2>
-    ${ranking.map((entry, index) =>
-      `<p><strong>#${index + 1}</strong> <span class="name">${escapeHtml(entry[0])}</span>: ${entry[1]} kill${entry[1] > 1 ? 's' : ''}</p>`
-    ).join('')}
-  `;
-
-  eventsContainer.appendChild(wrap);
-}
     function appendWinnerArt(winnerName) {
       const wrap = document.createElement('div');
       wrap.className = 'winner-art-wrap';
       wrap.innerHTML = '<canvas class="winner-art-canvas"></canvas>';
       eventsContainer.appendChild(wrap);
       animateWinnerArt(wrap.querySelector('canvas'), winnerName);
+    }
+
+    function appendKillRanking() {
+      if (!simState || !simState.killCount) return;
+      const ranking = Object.entries(simState.killCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+      if (!ranking.length) return;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'section ranking-wrap';
+      wrap.innerHTML = `
+        <h2>🔪 Top asesinos</h2>
+        ${ranking.map((entry, index) => `<p><strong>#${index + 1}</strong> <span class="name">${escapeHtml(entry[0])}</span>: ${entry[1]} kill${entry[1] > 1 ? 's' : ''}</p>`).join('')}
+      `;
+      eventsContainer.appendChild(wrap);
     }
 
     function addEventBlock(title, lines, type) {
@@ -763,11 +1286,19 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       const emoji = getTitleEmoji(type, title);
       const body = lines.map(line => {
         const decorated = decorateLine(line);
-        return type === 'deaths' ? `<div class="death-item">${colorizeNames(decorated, currentNames)}</div>` : `<p>${colorizeNames(decorated, currentNames)}</p>`;
+        return type === 'deaths'
+          ? `<div class="death-item">${colorizeNames(decorated, currentNames)}</div>`
+          : `<p>${colorizeNames(decorated, currentNames)}</p>`;
       }).join('');
-      card.innerHTML = `<div class="event-header">${emoji} ${escapeHtml(title)}</div><div class="event-body ${type || ''}">${body}</div>`;
+
+      card.innerHTML = `
+        <div class="event-header">${emoji} ${escapeHtml(title)}</div>
+        <div class="event-body ${type || ''}">${body}</div>
+      `;
+
       eventsContainer.appendChild(card);
       appendSceneArt(title, lines, type);
+
       if (type === 'winner' && lines.length > 0) {
         const winnerName = lines[0].split(' ')[0] || 'Ganador';
         appendWinnerArt(winnerName);
@@ -801,48 +1332,65 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       if (!simState || simState.alive.length !== 1 || simState.finished) return;
       simState.finished = true;
       simState.winner = simState.alive[0];
-      simState.history.push({ title: 'Ganador', lines: [`${simState.winner} es el único sobreviviente.`], type: 'winner', status: `${prefix} Ganador: ${simState.winner}.` });
+      simState.history.push({
+        title: 'Ganador',
+        lines: [`${simState.winner} es el único sobreviviente.`],
+        type: 'winner',
+        status: `${prefix} Ganador: ${simState.winner}.`
+      });
     }
 
     function generateDayPhase(state, day) {
       const lines = [];
       const deaths = [];
+
       if (day === 1) {
         lines.push('El Ram Hakol anuncia por los parlantes que la Purga acaba de comenzar.');
         lines.push('Avisa que ya no hay madrijim, no hay reglas y cada uno deberá sobrevivir como pueda.');
         lines.push('En la cancha empiezan a caer armas y recursos para quien se anime a ir a buscarlos.');
       }
+
       if (day === 3) {
         const specialEvent = createDay3SpecialEvent(state);
         lines.push(...specialEvent.lines);
         deaths.push(...specialEvent.deaths);
       }
-      lines.push(...createGenericPhaseLines('day', state.alive, state.places, state.config));
+
+      lines.push(...createGenericPhaseLines('day', state));
+
       const allianceLine = tryCreateAllianceEvent(state, 'day');
       if (allianceLine) lines.push(allianceLine);
+
       const breakLine = tryBreakAllianceEvent(state);
       if (breakLine) lines.push(breakLine);
+
       const theftLine = tryTheftEvent(state);
       if (theftLine) lines.push(theftLine);
+
       return { lines, deaths };
     }
 
     function generateNightPhase(state, remainingDeathsNeeded) {
       const lines = [];
       const deaths = [];
-      lines.push(...createGenericPhaseLines('night', state.alive, state.places, state.config));
+
+      lines.push(...createGenericPhaseLines('night', state));
+
       const allianceLine = tryCreateAllianceEvent(state, 'night');
       if (allianceLine) lines.push(allianceLine);
+
       if (!state.hasRomance && state.currentDay === 4 && !getAlliancePairs(state).length && state.alive.length >= 2) {
         const pair = shuffle([...state.alive]).slice(0, 2);
         addAlliance(state, pair[0], pair[1]);
         lines.push(`${pair[0]} y ${pair[1]} deciden confiar el uno en el otro en ${randomItem(state.places)}.`);
       }
+
       const betrayal = tryBetrayalEvent(state);
       if (betrayal) {
         lines.push(betrayal.line);
         deaths.push(betrayal.death);
       }
+
       if (deaths.length < remainingDeathsNeeded) {
         const directKill = tryDirectKill(state, 'night');
         if (directKill) {
@@ -850,6 +1398,7 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
           deaths.push(directKill.death);
         }
       }
+
       if (deaths.length < remainingDeathsNeeded) {
         const accident = tryAccidentDeath(state, 'night');
         if (accident) {
@@ -857,64 +1406,132 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
           deaths.push(accident.death);
         }
       }
+
       const romanceLine = tryRomanceEvent(state, !state.hasRomance && state.currentDay === 4);
       if (romanceLine) {
         lines.push(romanceLine);
         state.hasRomance = true;
       }
+
       return { lines, deaths };
     }
 
     function createForcedDeathEvent(state, phaseType) {
       if (state.alive.length <= 1) return null;
+
+      const prelude = createGenericPhaseLines(phaseType, state, 1);
       const victim = randomItem(state.alive);
       const result = killVictim(state, victim, true);
+
       if (!result) return null;
+
       const introOptions = phaseType === 'night'
-        ? ['Un grito rompe el silencio de la noche y desata un enfrentamiento brutal.', 'En medio de la oscuridad, una emboscada cambia el destino de todos.', 'Un movimiento en falso durante la noche termina en una cacería letal.']
-        : ['Una pelea por recursos escala de golpe y termina de la peor manera.', 'Un cruce tenso en el campamento se convierte en violencia total.', 'La disputa por un escondite seguro termina en un ataque inesperado.'];
-      return { line: `${randomItem(introOptions)} ${result.event}`, death: result.death };
+        ? [
+            'Un grito rompe el silencio de la noche y desata un enfrentamiento brutal.',
+            'En medio de la oscuridad, una emboscada cambia el destino de todos.',
+            'Un movimiento en falso durante la noche termina en una cacería letal.'
+          ]
+        : [
+            'Una pelea por recursos escala de golpe y termina de la peor manera.',
+            'Un cruce tenso en el campamento se convierte en violencia total.',
+            'La disputa por un escondite seguro termina en un ataque inesperado.'
+          ];
+
+      const prefix = prelude.length ? `${prelude[0]} ` : '';
+
+      return {
+        line: `${prefix}${randomItem(introOptions)} ${result.event}`,
+        death: result.death
+      };
     }
 
-    function fillRemainingDeathsForDay(state, deathsNeeded, dayLines, nightLines, deaths) {
-      let guard = 0;
-      while (deaths.length < deathsNeeded && state.alive.length > 1 && guard < 20) {
-        const useNight = deaths.length % 2 === 0;
-        const forcedEvent = createForcedDeathEvent(state, useNight ? 'night' : 'day');
-        if (!forcedEvent) break;
-        if (useNight) nightLines.push(forcedEvent.line); else dayLines.push(forcedEvent.line);
-        deaths.push(forcedEvent.death);
-        guard += 1;
-      }
+function fillForcedDeathsForPhase(state, deathsNeeded, phaseType, lines, deaths) {
+  let guard = 0;
+  while (deaths.length < deathsNeeded && state.alive.length > 1 && guard < 20) {
+    const forcedEvent = createForcedDeathEvent(state, phaseType);
+    if (!forcedEvent) break;
+    lines.push(forcedEvent.line);
+    deaths.push(forcedEvent.death);
+    guard += 1;
+  }
+}
+
+function generateFullSimulation() {
+  if (!simState) return;
+
+  simState.history = [];
+  simState.dayDeathsMap = {};
+  simState.alliances = new Set();
+  simState.finished = false;
+  simState.winner = null;
+  simState.hasRomance = false;
+  simState.killCount = simState.killCount || {};
+
+  for (let day = 1; day <= simState.config.days; day++) {
+    simState.currentDay = day;
+    if (simState.alive.length <= 1) break;
+
+    const deathsTarget = getTargetDeathsForDay(simState, day);
+
+    const dayPhase = generateDayPhase(simState, day);
+    const dayDeaths = [...dayPhase.deaths];
+
+    const desiredDayDeaths = Math.min(deathsTarget, Math.ceil(deathsTarget / 2));
+    fillForcedDeathsForPhase(simState, desiredDayDeaths, 'day', dayPhase.lines, dayDeaths);
+
+    simState.history.push({
+      title: `Día ${day}`,
+      lines: [...dayPhase.lines],
+      type: 'day',
+      status: `Día ${day} completado. Siguiente: Noche ${day}.`
+    });
+
+    if (simState.alive.length <= 1) {
+      simState.dayDeathsMap[day] = [...dayDeaths];
+      simState.history.push({
+        title: `Muertes Día ${day}`,
+        lines: dayDeaths.length ? [...dayDeaths] : ['No hubo muertes en este día.'],
+        type: 'deaths',
+        status: `Muertes Día ${day} mostradas.`
+      });
+      break;
     }
 
-    function generateFullSimulation() {
-      if (!simState) return;
-      simState.history = [];
-      simState.dayDeathsMap = {};
-      simState.alliances = new Set();
-      simState.finished = false;
-      simState.winner = null;
-      simState.hasRomance = false;
-      for (let day = 1; day <= simState.config.days; day++) {
-        simState.currentDay = day;
-        if (simState.alive.length <= 1) break;
-        const deathsTarget = getTargetDeathsForDay(simState, day);
-        const dayPhase = generateDayPhase(simState, day);
-        const deaths = [...dayPhase.deaths];
-        const remainingAfterDay = Math.max(0, deathsTarget - deaths.length);
-        const nightPhase = generateNightPhase(simState, remainingAfterDay);
-        deaths.push(...nightPhase.deaths);
-        fillRemainingDeathsForDay(simState, deathsTarget, dayPhase.lines, nightPhase.lines, deaths);
-        simState.dayDeathsMap[day] = [...deaths];
-        simState.history.push({ title: `Día ${day}`, lines: [...dayPhase.lines], type: 'day', status: `Día ${day} completado. Siguiente: Noche ${day}.` });
-        simState.history.push({ title: `Noche ${day}`, lines: [...nightPhase.lines], type: 'night', status: `Noche ${day} completado. Siguiente: Muertes Día ${day}.` });
-        const deathLines = deaths.length ? deaths : ['No hubo muertes en este día.'];
-        const nextStatus = day === simState.config.days ? `Muertes Día ${day} mostradas.` : `Muertes Día ${day} mostradas. Siguiente: Día ${day + 1}.`;
-        simState.history.push({ title: `Muertes Día ${day}`, lines: [...deathLines], type: 'deaths', status: nextStatus });
-      }
-      finishSimulation(`Muertes Día ${simState.config.days} mostradas.`);
-    }
+    const remainingAfterDay = Math.max(0, deathsTarget - dayDeaths.length);
+
+    const nightPhase = generateNightPhase(simState, remainingAfterDay);
+    const nightDeaths = [...nightPhase.deaths];
+
+    fillForcedDeathsForPhase(simState, remainingAfterDay, 'night', nightPhase.lines, nightDeaths);
+
+    simState.history.push({
+      title: `Noche ${day}`,
+      lines: [...nightPhase.lines],
+      type: 'night',
+      status: `Noche ${day} completado. Siguiente: Muertes Día ${day}.`
+    });
+
+    const allDeaths = [...dayDeaths, ...nightDeaths];
+    simState.dayDeathsMap[day] = [...allDeaths];
+
+    const deathLines = allDeaths.length ? allDeaths : ['No hubo muertes en este día.'];
+    const nextStatus = day === simState.config.days || simState.alive.length <= 1
+      ? `Muertes Día ${day} mostradas.`
+      : `Muertes Día ${day} mostradas. Siguiente: Día ${day + 1}.`;
+
+    simState.history.push({
+      title: `Muertes Día ${day}`,
+      lines: [...deathLines],
+      type: 'deaths',
+      status: nextStatus
+    });
+
+    if (simState.alive.length <= 1) break;
+  }
+
+  const lastDay = simState.currentDay || simState.config.days;
+  finishSimulation(`Muertes Día ${lastDay} mostradas.`);
+}
 
     function startSimulation() {
       const names = getNames();
@@ -922,8 +1539,25 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
         alert('Ingresá al menos 2 participantes.');
         return;
       }
-      simState = { allNames: [...names], alive: shuffle(names), places: [...allPlaces], config: getConfig(), timeline: buildTimeline(5), history: [], dayDeathsMap: {}, stepIndex: 0, finished: false, winner: null, alliances: new Set(), killCount: {}, deathPlan: buildDeathPlan(names.length - 1, 5) };
+
+      simState = {
+        allNames: [...names],
+        alive: shuffle(names),
+        places: [...allPlaces],
+        config: getConfig(),
+        timeline: buildTimeline(getConfig().days),
+        history: [],
+        dayDeathsMap: {},
+        stepIndex: 0,
+        finished: false,
+        winner: null,
+        alliances: new Set(),
+        deathPlan: buildDeathPlan(names.length - 1, getConfig().days),
+        killCount: {}
+      };
+
       generateFullSimulation();
+
       if (simState.history.length > 0) {
         simState.stepIndex = 1;
         renderStoredStep(simState.history[0]);
@@ -931,6 +1565,7 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
         eventsContainer.innerHTML = '';
         progressBox.textContent = 'No se pudo generar la simulación.';
       }
+
       openScreen('screen-results');
     }
 
@@ -939,11 +1574,13 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
         alert('Primero iniciá una simulación.');
         return;
       }
+
       if (simState.stepIndex >= simState.history.length) {
         const lastStep = simState.history[simState.history.length - 1];
         if (lastStep) renderStoredStep(lastStep);
         return;
       }
+
       renderStoredStep(simState.history[simState.stepIndex]);
       simState.stepIndex += 1;
     }
@@ -953,73 +1590,62 @@ return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} —
       console.assert(Boolean(simulateBtn), 'Debe existir simulateBtn');
       console.assert(Boolean(continueBtn), 'Debe existir continueBtn');
       console.assert(Boolean(backBtn), 'Debe existir backBtn');
+      console.assert(Boolean(rochelBtn), 'Debe existir rochelBtn');
       console.assert(buildTimeline(3).length === 9, '3 días deben generar 9 pasos');
       console.assert(getSceneKind('Lara mata a Tomi', 'night') === 'kill', 'Debe detectar escenas de asesinato');
       console.assert(getSceneKind('Lara vigila', 'night') === 'night_watch', 'Debe detectar escenas nocturnas genéricas');
       console.assert(getSceneKind('Lara vigila', 'day') === 'day_search', 'Debe detectar escenas diurnas genéricas');
+
       const testCanvas = document.createElement('canvas');
       drawWinnerArt(testCanvas, 'Lara', 1);
       console.assert(testCanvas.width === 800 && testCanvas.height === 1000, 'El canvas del ganador debe renderizar');
-      const tempState = { alive: ['Renzo', 'Uma', 'Lara'], places: [...allPlaces], alliances: new Set() };
+
+      const tempState = {
+        alive: ['Renzo', 'Uma', 'Lara'],
+        places: [...allPlaces],
+        alliances: new Set(),
+        config: getConfig()
+      };
+
       const d3 = createDay3SpecialEvent(tempState);
       console.assert(Array.isArray(d3.lines) && Array.isArray(d3.deaths), 'El evento del día 3 debe devolver líneas y muertes');
+
+      const aliveStateTest = {
+        alive: ['A', 'B'],
+        places: [...allPlaces],
+        config: getConfig()
+      };
+      const genericNight = createGenericPhaseLines('night', aliveStateTest, 2);
+      console.assert(genericNight.every(line => !line.includes('undefined')), 'Las líneas genéricas no deben romperse');
     }
 
     tabs.forEach(tab => tab.addEventListener('click', () => openScreen(tab.dataset.screen)));
     goConfigBtn.addEventListener('click', () => openScreen('screen-config'));
     simulateBtn.addEventListener('click', startSimulation);
     continueBtn.addEventListener('click', resolveTimelineStep);
+
     backBtn.addEventListener('click', () => {
       if (!simState || simState.history.length === 0) return;
       simState.stepIndex = Math.max(1, simState.stepIndex - 1);
       renderStoredStep(simState.history[simState.stepIndex - 1]);
     });
+
     clearBtn.addEventListener('click', () => {
       namesInput.value = '';
       simState = null;
       setResultsIdle();
       openScreen('screen-config');
     });
+
     randomNamesBtn.addEventListener('click', () => {
       namesInput.value = shuffle(randomPool).slice(0, 12).join('\n');
       openScreen('screen-config');
     });
+
     rochelBtn.addEventListener('click', () => {
-  namesInput.value = `Alex
-Milo
-Yoni
-Maayan
-Aby
-Alma
-Cata
-Chulak
-Dan
-Dani ker
-Ivan
-Jaz
-Juli
-Leon
-Lolo
-Mateo
-Khanis
-Nacho
-Paula
-Ramalan
-Schniper
-Yair
-Siano
-Wais
-Toto
-Uri
-Widder
-Wolko
-Dani magram
-Emma
-Espe
-Ari
-Sharon`;
-  openScreen('screen-config');
-});
+      namesInput.value = rochelNames;
+      openScreen('screen-config');
+    });
 
     namesInput.value = shuffle(randomPool).slice(0, 12).join('\n');
     setResultsIdle();
