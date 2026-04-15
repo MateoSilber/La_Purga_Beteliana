@@ -50,7 +50,10 @@
   <div class="app">
     <div class="topbar">
       <h1>⚡ La purga beteliana</h1>
-      <button id="randomNamesBtn" type="button">Cargar ejemplo</button>
+      <div style="display:flex; gap:8px;">
+        <button id="randomNamesBtn" type="button">Cargar ejemplo</button>
+        <button id="rochelBtn" type="button">Rochel</button>
+      </div>
     </div>
 
     <div class="menu">
@@ -107,6 +110,7 @@
     const clearBtn = document.getElementById('clearBtn');
     const goConfigBtn = document.getElementById('goConfigBtn');
     const randomNamesBtn = document.getElementById('randomNamesBtn');
+    const rochelBtn = document.getElementById('rochelBtn');
     const continueBtn = document.getElementById('continueBtn');
     const backBtn = document.getElementById('backBtn');
     const progressBox = document.getElementById('progressBox');
@@ -952,6 +956,42 @@
       namesInput.value = shuffle(randomPool).slice(0, 12).join('\n');
       openScreen('screen-config');
     });
+    rochelBtn.addEventListener('click', () => {
+  namesInput.value = `Alex
+Milo
+Yoni
+Maayan
+Aby
+Alma
+Cata
+Chulak
+Dan
+Dani ker
+Ivan
+Jaz
+Juli
+Leon
+Lolo
+Mateo
+Khanis
+Nacho
+Paula
+Ramalan
+Schniper
+Ýair
+Siano
+Wais
+Toto
+Uri
+Widder
+Wolko
+Dani magram
+Emma
+Espe
+Ari
+Sharon`;
+  openScreen('screen-config');
+});
 
     namesInput.value = shuffle(randomPool).slice(0, 12).join('\n');
     setResultsIdle();
