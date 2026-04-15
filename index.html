@@ -123,6 +123,11 @@
     const nightTemplates = ['{a} escucha movimientos cerca de {place} y se esconde.', '{a} duerme por turnos en {place}.', '{a} acecha a otros participantes desde {place}.', '{a} pasa la noche armado en {place}.', '{a} vigila cada ruido que sale de {place}.'];
 
     let simState = null;
+    function registerKill(killer) {
+  if (!simState || !killer) return;
+  if (!simState.killCount) simState.killCount = {};
+  simState.killCount[killer] = (simState.killCount[killer] || 0) + 1;
+}
 
     function openScreen(id) {
       screens.forEach(screen => screen.classList.remove('active'));
@@ -276,7 +281,8 @@
         const killer = randomItem(survivors);
         const place = randomItem(state.places);
         const weapon = randomItem(killWeapons);
-        return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} — ${weapon}.` };
+        registerKill(killer);
+return { event: `${killer} mata a ${victim} en ${place}.`, death: `${victim} — ${weapon}.` };
       }
       const cause = randomItem(accidentCauses);
       const place = randomItem(state.places);
@@ -720,7 +726,28 @@
       }
       loop();
     }
+    function appendKillRanking() {
+  if (!simState || !simState.killCount) return;
 
+  const ranking = Object.entries(simState.killCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  if (!ranking.length) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'section';
+  wrap.style.marginTop = '14px';
+
+  wrap.innerHTML = `
+    <h2>🔪 Top asesinos</h2>
+    ${ranking.map((entry, index) =>
+      `<p><strong>#${index + 1}</strong> <span class="name">${escapeHtml(entry[0])}</span>: ${entry[1]} kill${entry[1] > 1 ? 's' : ''}</p>`
+    ).join('')}
+  `;
+
+  eventsContainer.appendChild(wrap);
+}
     function appendWinnerArt(winnerName) {
       const wrap = document.createElement('div');
       wrap.className = 'winner-art-wrap';
@@ -744,6 +771,7 @@
       if (type === 'winner' && lines.length > 0) {
         const winnerName = lines[0].split(' ')[0] || 'Ganador';
         appendWinnerArt(winnerName);
+        appendKillRanking();
       }
     }
 
@@ -894,7 +922,7 @@
         alert('Ingresá al menos 2 participantes.');
         return;
       }
-      simState = { allNames: [...names], alive: shuffle(names), places: [...allPlaces], config: getConfig(), timeline: buildTimeline(5), history: [], dayDeathsMap: {}, stepIndex: 0, finished: false, winner: null, alliances: new Set(), deathPlan: buildDeathPlan(names.length - 1, 5) };
+      simState = { allNames: [...names], alive: shuffle(names), places: [...allPlaces], config: getConfig(), timeline: buildTimeline(5), history: [], dayDeathsMap: {}, stepIndex: 0, finished: false, winner: null, alliances: new Set(), killCount: {}, deathPlan: buildDeathPlan(names.length - 1, 5) };
       generateFullSimulation();
       if (simState.history.length > 0) {
         simState.stepIndex = 1;
