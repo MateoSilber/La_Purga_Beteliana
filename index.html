@@ -620,12 +620,12 @@ Sharon`;
       return lines;
     }
 
-   function createDay3SpecialEvent(state) {
+    function createDay3SpecialEvent(state) {
   if (state.alive.length < 1) return { lines: [], deaths: [] };
 
-  const roll = Math.random();
   const lines = [];
   const deaths = [];
+  const roll = Math.random();
 
   function formatNames(list) {
     if (list.length === 0) return '';
@@ -633,6 +633,29 @@ Sharon`;
     if (list.length === 2) return `${list[0]} y ${list[1]}`;
     return `${list.slice(0, -1).join(', ')} y ${list[list.length - 1]}`;
   }
+
+  if (Math.random() < 1 / 50) {
+  const victims = [...state.alive];
+  lines.push('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
+  lines.push('¡¡¡¡¡¡EVENTO ESPECIAL!!!!!');
+  lines.push('En la mitad de Majané, ocurre algo imposible: Marshall Mayer revive de la nada.');
+  lines.push('El predio entero queda en silencio. Marshall avanza sin frenar mientras todos intentan escapar, pero los va encontrando uno por uno en cada rincón del campamento.');
+  lines.push('Nadie logra detenerlo. Marshall Mayer elimina a todos los jugadores restantes y gana automáticamente la partida.');
+  lines.push('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
+
+  victims.forEach(name => {
+    const idx = state.alive.indexOf(name);
+    if (idx !== -1) {
+      state.alive.splice(idx, 1);
+      removeDeadFromAlliances(state, name);
+      deaths.push(`${name} — fue asesinado por Marshall Mayer tras su regreso en Majané.`);
+    }
+  });
+
+  state.winner = 'Marshall Mayer';
+
+  return { lines, deaths };
+}
 
   if (roll < 0.3) {
     const players = shuffle([...state.alive]).slice(0, 2);
@@ -656,27 +679,28 @@ Sharon`;
       deaths.push(`${loser} — murió tras perder un 1v1 de Dogeball.`);
     }
   } else if (roll < 0.65) {
-  if (state.alive.length < 2) {
-    lines.push('No hubo suficientes participantes para organizar el Paintball especial.');
-    return { lines, deaths };
-  }
+    if (state.alive.length < 2) {
+      lines.push('No hubo suficientes participantes para organizar el Paintball especial.');
+      return { lines, deaths };
+    }
 
-  const shuffledAlive = shuffle([...state.alive]);
-  const splitIndex = Math.ceil(shuffledAlive.length / 2);
+    const shuffledAlive = shuffle([...state.alive]);
+    const splitIndex = Math.ceil(shuffledAlive.length / 2);
 
-  const teamA = shuffledAlive.slice(0, splitIndex);
-  const teamB = shuffledAlive.slice(splitIndex);
+    const teamA = shuffledAlive.slice(0, splitIndex);
+    const teamB = shuffledAlive.slice(splitIndex);
 
-  if (!teamA.length || !teamB.length) {
-    lines.push('No hubo suficientes participantes para organizar el Paintball especial.');
-    return { lines, deaths };
-  }
+    if (!teamA.length || !teamB.length) {
+      lines.push('No hubo suficientes participantes para organizar el Paintball especial.');
+      return { lines, deaths };
+    }
+
     const winnerTeam = Math.random() < 0.5 ? teamA : teamB;
     const loserTeam = winnerTeam === teamA ? teamB : teamA;
 
-   lines.push(`Se anuncia un desafío especial de Paintball en el Día 3. Los jugadores restantes se dividen en dos equipos y se enfrentan con pistolas de agua de colores y bombuchas de colores.`);
+    lines.push('Se anuncia un desafío especial de Paintball en el Día 3. Los jugadores restantes se dividen en dos equipos y se enfrentan con pistolas de agua de colores y bombuchas de colores.');
     lines.push(`Equipo Azul: ${formatNames(teamA)}. Equipo Rojo: ${formatNames(teamB)}.`);
-    lines.push(`El partido arranca con corridas desesperadas, escondites improvisados y una lluvia constante de agua teñida y bombuchas de colores. Durante varios minutos nadie logra dominar del todo, hasta que el equipo ganador encierra al otro entre gritos, manchas y disparos cada vez más precisos.`);
+    lines.push('El partido arranca con corridas desesperadas, escondites improvisados y una lluvia constante de agua teñida y bombuchas de colores. Durante varios minutos nadie logra dominar del todo, hasta que el equipo ganador encierra al otro entre gritos, manchas y disparos cada vez más precisos.');
     lines.push(`${formatNames(winnerTeam)} gana el Paintball y se lleva una buena cantidad de recursos.`);
 
     const deadPlayers = [...loserTeam];
@@ -1401,16 +1425,31 @@ const priority = ['Dogeball', 'Paintball', 'ladrones', 'caja', 'mata', 'muere', 
     }
 
     function finishSimulation(prefix) {
-      if (!simState || simState.alive.length !== 1 || simState.finished) return;
-      simState.finished = true;
+  if (!simState || simState.finished) return;
+
+  simState.finished = true;
+
+  if (!simState.winner) {
+    if (simState.alive.length === 1) {
       simState.winner = simState.alive[0];
-      simState.history.push({
-        title: 'Ganador',
-        lines: [`${simState.winner} es el único sobreviviente.`],
-        type: 'winner',
-        status: `${prefix} Ganador: ${simState.winner}.`
-      });
+    } else if (simState.alive.length > 1) {
+      simState.winner = randomItem(simState.alive);
+    } else {
+      simState.winner = 'Sin ganador';
     }
+  }
+
+  const winnerText = simState.winner === 'Marshall Mayer'
+    ? 'Marshall Mayer revive, elimina a todos y gana la Purga.'
+    : `${simState.winner} es el único sobreviviente.`;
+
+  simState.history.push({
+    title: 'Ganador',
+    lines: [winnerText],
+    type: 'winner',
+    status: `${prefix} Ganador: ${simState.winner}.`
+  });
+}
 
     function generateDayPhase(state, day) {
       const lines = [];
