@@ -600,7 +600,123 @@ Sharon`;
       });
       toDelete.forEach(key => state.alliances.delete(key));
     }
+    function getRomancePairs(state) {
+  const pairs = [];
+  if (!state.romances) return pairs;
 
+  state.romances.forEach(key => {
+    const [a, b] = key.split('||');
+    if (state.alive.includes(a) && state.alive.includes(b)) pairs.push([a, b]);
+  });
+
+  return pairs;
+}
+
+function addRomance(state, a, b) {
+  if (!state.romances) state.romances = new Set();
+  if (!a || !b || a === b) return false;
+  if (!state.alive.includes(a) || !state.alive.includes(b)) return false;
+
+  const key = makeAllianceKey(a, b);
+  if (state.romances.has(key)) return false;
+
+  state.romances.add(key);
+  return true;
+}
+
+function removeRomance(state, a, b) {
+  if (!state.romances) return false;
+  return state.romances.delete(makeAllianceKey(a, b));
+}
+
+function removeDeadFromRomances(state, deadName) {
+  if (!state.romances) return;
+
+  const toDelete = [];
+  state.romances.forEach(key => {
+    const [a, b] = key.split('||');
+    if (a === deadName || b === deadName) toDelete.push(key);
+  });
+  toDelete.forEach(key => state.romances.delete(key));
+}
+
+function removeAllRomancesForPerson(state, name) {
+  if (!state.romances) return;
+
+  const toDelete = [];
+  state.romances.forEach(key => {
+    const [a, b] = key.split('||');
+    if (a === name || b === name) toDelete.push(key);
+  });
+  toDelete.forEach(key => state.romances.delete(key));
+}
+    function removeAllAlliancesForPerson(state, name) {
+  const toDelete = [];
+  state.alliances.forEach(key => {
+    const [a, b] = key.split('||');
+    if (a === name || b === name) toDelete.push(key);
+  });
+  toDelete.forEach(key => state.alliances.delete(key));
+}
+
+function tryInfidelityEvent(state, phaseType) {
+  const pairs = getRomancePairs(state);
+  if (!pairs.length || !chance(0.3)) return null;
+
+  const selectedPair = randomItem(pairs);
+  if (!selectedPair || selectedPair.length !== 2) return null;
+
+  const first = selectedPair[0];
+  const second = selectedPair[1];
+
+  if (!first || !second || first === second) return null;
+  if (!state.alive.includes(first) || !state.alive.includes(second)) return null;
+
+  const cheater = Math.random() < 0.5 ? first : second;
+  const betrayed = cheater === first ? second : first;
+
+  const currentRomanceKeys = new Set(
+    getRomancePairs(state).map(([a, b]) => makeAllianceKey(a, b))
+  );
+
+  const options = state.alive.filter(name => {
+    if (name === cheater || name === betrayed) return false;
+
+    const keyWithCheater = makeAllianceKey(cheater, name);
+    if (currentRomanceKeys.has(keyWithCheater)) return false;
+
+    const isAlreadyInRomance = getRomancePairs(state).some(([a, b]) => a === name || b === name);
+    if (isAlreadyInRomance) return false;
+
+    return true;
+  });
+
+  if (!options.length) return null;
+
+  const newPartner = randomItem(options);
+  if (!newPartner) return null;
+
+  removeRomance(state, first, second);
+  removeAllRomancesForPerson(state, cheater);
+  removeAllRomancesForPerson(newPartner);
+  addRomance(state, cheater, newPartner);
+
+  const place = randomItem(state.places);
+
+  if (phaseType === 'night') {
+    return randomItem([
+      `${cheater} le es infiel a ${betrayed} durante la noche con ${newPartner} en ${place}. Ahora ${cheater} y ${newPartner} forman una nueva pareja.`,
+      `En secreto, ${cheater} engaña a ${betrayed} con ${newPartner} en ${place}. La pareja se rompe y nace una nueva entre ${cheater} y ${newPartner}.`,
+      `${betrayed} descubre que ${cheater} le fue infiel con ${newPartner} en ${place}. Desde esa noche, ${cheater} y ${newPartner} quedan juntos.`
+    ]);
+  }
+
+  return randomItem([
+    `${cheater} le es infiel a ${betrayed} con ${newPartner} en ${place}. Ahora ${cheater} y ${newPartner} forman una nueva pareja.`,
+    `${betrayed} descubre que ${cheater} lo engañó con ${newPartner} en ${place}. La pareja se rompe y nace una nueva entre ${cheater} y ${newPartner}.`,
+    `En medio del caos, ${cheater} deja a ${betrayed} y empieza una nueva relación con ${newPartner} en ${place}.`
+  ]);
+}
     function fillTemplate(template, alive, places) {
       const a = randomItem(alive);
       let b = randomItem(alive.filter(name => name !== a));
@@ -760,6 +876,7 @@ Sharon`;
       const victimIndex = state.alive.indexOf(victim);
       state.alive.splice(victimIndex, 1);
       removeDeadFromAlliances(state, victim);
+      removeDeadFromRomances(state, victim);
 
       const survivors = [...state.alive];
       const useKiller = forcedKiller || Math.random() < 0.78;
@@ -801,16 +918,22 @@ Sharon`;
     }
 
     function tryRomanceEvent(state, force = false) {
-      const pairs = getAlliancePairs(state);
-      if (!pairs.length) return null;
-      if (!force && !chance(state.config.romanceChanceNight)) return null;
-      const [a, b] = randomItem(pairs);
-      return randomItem([
-        `${a} y ${b} se refugian juntos y terminan enamorándose en ${randomItem(state.places)}.`,
-        `${a} y ${b} pasan la noche juntos y nace algo especial en medio del caos.`,
-        `Entre el miedo y la tensión, ${a} y ${b} se acercan y forman un vínculo romántico.`
-      ]);
-    }
+  const pairs = getAlliancePairs(state);
+  if (!pairs.length) return null;
+  if (!force && !chance(state.config.romanceChanceNight)) return null;
+
+  const availablePairs = pairs.filter(([a, b]) => !state.romances || !state.romances.has(makeAllianceKey(a, b)));
+  if (!availablePairs.length) return null;
+
+  const [a, b] = randomItem(availablePairs);
+  addRomance(state, a, b);
+
+  return randomItem([
+    `${a} y ${b} se refugian juntos y terminan enamorándose en ${randomItem(state.places)}.`,
+    `${a} y ${b} pasan la noche juntos y nace algo especial en medio del caos.`,
+    `Entre el miedo y la tensión, ${a} y ${b} se acercan y forman un vínculo romántico.`
+  ]);
+}
 
     function tryBetrayalEvent(state) {
       const pairs = getAlliancePairs(state);
@@ -901,6 +1024,7 @@ Sharon`;
       if (text.includes('Paintball')) return `🎨 ${text}`;
       if (text.includes('ladrones')) return `🕵️ ${text}`;
       if (text.includes('caja misteriosa') || text.includes('caja')) return `🎁 ${text}`;
+      if (text.includes('infiel') || text.includes('engaña') || text.includes('engañó')) return `💔 ${text}`;
       if (text.includes('entra en depresión')) return `💔 ${text}`;
 if (text.includes('le pide a') || text.includes('se niega')) return `💔 ${text}`;
       if (text.includes('mata') || text.includes('muere') || text.includes('traiciona')) return `🔪 ${text}`;
@@ -1481,16 +1605,19 @@ const priority = ['Dogeball', 'Paintball', 'ladrones', 'caja', 'mata', 'muere', 
 
       lines.push(...createGenericPhaseLines('day', state));
 
-      const allianceLine = tryCreateAllianceEvent(state, 'day');
-      if (allianceLine) lines.push(allianceLine);
+const allianceLine = tryCreateAllianceEvent(state, 'day');
+if (allianceLine) lines.push(allianceLine);
 
-      const breakLine = tryBreakAllianceEvent(state);
-      if (breakLine) lines.push(breakLine);
+const infidelityLine = tryInfidelityEvent(state, 'day');
+if (infidelityLine) lines.push(infidelityLine);
 
-      const theftLine = tryTheftEvent(state);
-      if (theftLine) lines.push(theftLine);
+const breakLine = tryBreakAllianceEvent(state);
+if (breakLine) lines.push(breakLine);
 
-      return { lines, deaths };
+const theftLine = tryTheftEvent(state);
+if (theftLine) lines.push(theftLine);
+
+return { lines, deaths };
     }
     function tryDepressionNightEvent(state) {
   if (state.alive.length < 2) return null;
@@ -1537,6 +1664,9 @@ function generateNightPhase(state, remainingDeathsNeeded) {
 
   const allianceLine = tryCreateAllianceEvent(state, 'night');
   if (allianceLine) lines.push(allianceLine);
+
+  const infidelityLine = tryInfidelityEvent(state, 'night');
+if (infidelityLine) lines.push(infidelityLine);
 
   if (!state.hasRomance && state.currentDay === 4 && !getAlliancePairs(state).length && state.alive.length >= 2) {
     const pair = shuffle([...state.alive]).slice(0, 2);
@@ -1719,6 +1849,7 @@ function generateFullSimulation() {
         finished: false,
         winner: null,
         alliances: new Set(),
+        romances: new Set(),
         deathPlan: buildDeathPlan(names.length - 1, getConfig().days),
         killCount: {}
       };
