@@ -14,6 +14,71 @@ gtag('config', 'G-FJTSH29FWG');
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>La purga beteliana</title>
   <style>
+    .clickable {
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+.modal-box {
+  width: min(680px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #111827;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 22px 20px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.modal-box h3 {
+  margin: 0 0 12px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.discoveries-list {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.discovery-item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+}
+
+.discovery-item.locked {
+  opacity: 0.55;
+}
+
+.discovery-item.unlocked {
+  border: 1px solid rgba(74, 222, 128, 0.35);
+}
     * {
       box-sizing: border-box;
       margin: 0;
@@ -379,7 +444,7 @@ gtag('config', 'G-FJTSH29FWG');
     <section class="screen" id="screen-results">
       <div class="section">
         <div class="status-box" id="progressBox">Todavía no arrancó la simulación.</div>
-        <div class="status-box" id="discoveriesBox">📚 Eventos desbloqueados: 0</div>
+        <div class="status-box clickable" id="discoveriesBox">📚 Eventos desbloqueados: 0</div>
         <div class="actions" style="margin-bottom: 12px;">
           <button class="secondary" id="backBtn" type="button">⏮️ Atrás</button>
           <button class="primary" id="continueBtn" type="button">⏭️ Siguiente</button>
@@ -405,8 +470,33 @@ gtag('config', 'G-FJTSH29FWG');
     const backBtn = document.getElementById('backBtn');
     const progressBox = document.getElementById('progressBox');
     const discoveriesBox = document.getElementById('discoveriesBox');
+    const discoveriesModal = document.getElementById('discoveriesModal');
+    const closeDiscoveriesModal = document.getElementById('closeDiscoveriesModal');
+    const discoveriesSummary = document.getElementById('discoveriesSummary');
+    const discoveriesMissing = document.getElementById('discoveriesMissing');
+    const discoveriesList = document.getElementById('discoveriesList');
 
     const DISCOVERED_EVENTS_KEY = 'purgaBetelianaDiscoveredEvents';
+    const ALL_EVENT_DEFINITIONS = [
+  { id: 'day3_dogeball', label: '🏐 Dogeball especial' },
+  { id: 'day3_paintball', label: '🎨 Paintball especial' },
+  { id: 'day3_gogus', label: '🍔 Pelea por las Gogus' },
+  { id: 'day3_iomsport', label: '🏅 Iom Sport' },
+  { id: 'day3_zimria', label: '🎤 Zimria' },
+  { id: 'day3_sign_fire', label: '🔥 Incendio del cartel de Majané' },
+  { id: 'day3_thieves', label: '🕵️ Ladrones' },
+  { id: 'day3_mystery_box', label: '📦 Caja misteriosa' },
+  { id: 'day3_marshall', label: '💀 Regreso de Marshall Mayer' },
+  { id: 'alliance', label: '🤝 Nueva alianza' },
+  { id: 'broken_alliance', label: '💥 Ruptura de alianza' },
+  { id: 'betrayal', label: '🔪 Traición' },
+  { id: 'romance', label: '💘 Romance' },
+  { id: 'infidelity', label: '💔 Infidelidad' },
+  { id: 'depression_request', label: '🖤 Pedido de muerte por depresión' },
+  { id: 'theft', label: '👜 Robo de recursos' },
+  { id: 'death_report', label: '☠️ Registro de muertes' },
+  { id: 'winner_marshall', label: '👑 Victoria de Marshall Mayer' }
+];
 
     const allPlaces = [
       'Entrada', 'Provincia', 'La jungla', 'Cuarto de las chelas', 'Baños de Provincia',
@@ -558,6 +648,37 @@ function getDiscoveredEventsCount() {
 function updateDiscoveriesBox() {
   if (!discoveriesBox) return;
   discoveriesBox.textContent = `📚 Eventos desbloqueados: ${getDiscoveredEventsCount()}`;
+}
+function renderDiscoveriesModal() {
+  const unlocked = getDiscoveredEvents();
+  const unlockedSet = new Set(unlocked);
+  const total = ALL_EVENT_DEFINITIONS.length;
+  const unlockedCount = unlocked.length;
+  const missingCount = Math.max(0, total - unlockedCount);
+
+  discoveriesSummary.textContent = `Llevás ${unlockedCount} de ${total} eventos desbloqueados.`;
+  discoveriesMissing.textContent = `Te faltan ${missingCount} por desbloquear.`;
+
+  discoveriesList.innerHTML = '';
+
+  ALL_EVENT_DEFINITIONS.forEach(eventDef => {
+    const unlockedNow = unlockedSet.has(eventDef.id);
+
+    const item = document.createElement('div');
+    item.className = `discovery-item ${unlockedNow ? 'unlocked' : 'locked'}`;
+    item.textContent = `${unlockedNow ? '✅' : '🔒'} ${eventDef.label}`;
+
+    discoveriesList.appendChild(item);
+  });
+}
+
+function openDiscoveriesModal() {
+  renderDiscoveriesModal();
+  discoveriesModal.classList.add('show');
+}
+
+function closeDiscoveriesModalFn() {
+  discoveriesModal.classList.remove('show');
 }
 
     function escapeHtml(text) {
@@ -2149,11 +2270,33 @@ function generateFullSimulation() {
       namesInput.value = rochelNames;
       openScreen('screen-config');
     });
+    discoveriesBox.addEventListener('click', () => {
+  openDiscoveriesModal();
+});
+
+closeDiscoveriesModal.addEventListener('click', () => {
+  closeDiscoveriesModalFn();
+});
+
+discoveriesModal.addEventListener('click', (event) => {
+  if (event.target === discoveriesModal) {
+    closeDiscoveriesModalFn();
+  }
+});
 
     namesInput.value = shuffle(randomPool).slice(0, 12).join('\n');
 updateDiscoveriesBox();
 setResultsIdle();
 runBasicTests();
   </script>
+  <div class="modal-overlay" id="discoveriesModal">
+    <div class="modal-box">
+      <button class="modal-close" id="closeDiscoveriesModal">✕</button>
+      <h3>Eventos desbloqueados</h3>
+      <div id="discoveriesSummary">Llevás 0 de 0 eventos.</div>
+      <div id="discoveriesMissing">Te faltan 0 por desbloquear.</div>
+      <div id="discoveriesList" class="discoveries-list"></div>
+    </div>
+  </div>
 </body>
 </html>
