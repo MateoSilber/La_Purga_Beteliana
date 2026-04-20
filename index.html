@@ -788,12 +788,12 @@ function tryInfidelityEvent(state, phaseType) {
     const loserTeam = ordered[ordered.length - 1];
 
     if (mode === 'iomsport') {
-      lines.push('El Ram Hakol grita: “Comenzó el Iom Sport”.');
-      lines.push(`Se forman los equipos Rojo, Amarillo, Verde y Azul. Equipo Rojo: ${formatNames((teams.find(t => t.color === 'Rojo') || { players: [] }).players)}. Equipo Amarillo: ${formatNames((teams.find(t => t.color === 'Amarillo') || { players: [] }).players)}. Equipo Verde: ${formatNames((teams.find(t => t.color === 'Verde') || { players: [] }).players)}. Equipo Azul: ${formatNames((teams.find(t => t.color === 'Azul') || { players: [] }).players)}.`);
+      lines.push('El Ram Hakol grita: “🎽Comenzó el Iom Sport”.');
+      lines.push(`Se forman los equipos Rojo, Amarillo, Verde y Azul. 🔴Equipo Rojo: ${formatNames((teams.find(t => t.color === 'Rojo') || { players: [] }).players)}. 🟡Equipo Amarillo: ${formatNames((teams.find(t => t.color === 'Amarillo') || { players: [] }).players)}. 🟢Equipo Verde: ${formatNames((teams.find(t => t.color === 'Verde') || { players: [] }).players)}. 🔵Equipo Azul: ${formatNames((teams.find(t => t.color === 'Azul') || { players: [] }).players)}.`);
       lines.push('El torneo arranca con una mezcla frenética de partidos, carreras, gritos desde las tribunas improvisadas y desafíos físicos cada vez más intensos. Algunos equipos empiezan dominando, otros remontan sobre el final, y la pelea por no terminar últimos mantiene la tensión hasta el último segundo.');
     } else {
-      lines.push('El Ram Hakol grita: “Comenzó la Zimria”.');
-      lines.push(`Se forman los equipos Rojo, Amarillo, Verde y Azul. Equipo Rojo: ${formatNames((teams.find(t => t.color === 'Rojo') || { players: [] }).players)}. Equipo Amarillo: ${formatNames((teams.find(t => t.color === 'Amarillo') || { players: [] }).players)}. Equipo Verde: ${formatNames((teams.find(t => t.color === 'Verde') || { players: [] }).players)}. Equipo Azul: ${formatNames((teams.find(t => t.color === 'Azul') || { players: [] }).players)}.`);
+      lines.push('El Ram Hakol grita: “🎭Comenzó la Zimria”.');
+      lines.push(`Se forman los equipos Rojo, Amarillo, Verde y Azul. 🔴Equipo Rojo: ${formatNames((teams.find(t => t.color === 'Rojo') || { players: [] }).players)}. 🟡Equipo Amarillo: ${formatNames((teams.find(t => t.color === 'Amarillo') || { players: [] }).players)}. 🟢Equipo Verde: ${formatNames((teams.find(t => t.color === 'Verde') || { players: [] }).players)}. 🔵Equipo Azul: ${formatNames((teams.find(t => t.color === 'Azul') || { players: [] }).players)}.`);
       lines.push('La competencia se llena de canciones, actuaciones, baile, instrumentos, escenografías improvisadas y momentos artísticos que sorprenden a todos. Cada equipo intenta emocionar más que el otro, pero al final los jueces toman una decisión y la tabla queda definida por detalles mínimos.');
     }
 
