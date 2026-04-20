@@ -753,36 +753,95 @@ function tryInfidelityEvent(state, phaseType) {
   const roll = Math.random();
 
   function formatNames(list) {
-    if (list.length === 0) return '';
+    if (!list.length) return '';
     if (list.length === 1) return list[0];
     if (list.length === 2) return `${list[0]} y ${list[1]}`;
     return `${list.slice(0, -1).join(', ')} y ${list[list.length - 1]}`;
   }
 
-  if (Math.random() < 1 / 50) {
-  const victims = [...state.alive];
-  lines.push('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
-  lines.push('¡¡¡¡¡¡EVENTO ESPECIAL!!!!!');
-  lines.push('En la mitad de Majané, ocurre algo imposible: Marshall Mayer revive de la nada.');
-  lines.push('El predio entero queda en silencio. Marshall avanza sin frenar mientras todos intentan escapar, pero los va encontrando uno por uno en cada rincón del campamento.');
-  lines.push('Nadie logra detenerlo. Marshall Mayer elimina a todos los jugadores restantes y gana automáticamente la partida.');
-  lines.push('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
+  function buildColorTeams(players) {
+    const shuffled = shuffle([...players]);
+    const colors = ['Rojo', 'Amarillo', 'Verde', 'Azul'];
+    const teams = colors.map(color => ({ color, players: [], points: 0 }));
 
-  victims.forEach(name => {
-    const idx = state.alive.indexOf(name);
-    if (idx !== -1) {
-      state.alive.splice(idx, 1);
-      removeDeadFromAlliances(state, name);
-      deaths.push(`${name} — fue asesinado por Marshall Mayer tras su regreso en Majané.`);
+    shuffled.forEach((player, index) => {
+      teams[index % 4].players.push(player);
+    });
+
+    return teams.filter(team => team.players.length > 0);
+  }
+
+  function createTournamentEvent(mode) {
+    if (state.alive.length < 4) {
+      lines.push(`No hubo suficientes participantes para organizar ${mode === 'iomsport' ? 'el Iom Sport' : 'la Zimria'}.`);
+      return { lines, deaths };
     }
-  });
 
-  state.winner = 'Marshall Mayer';
+    const teams = buildColorTeams(state.alive);
 
-  return { lines, deaths };
-}
+    teams.forEach(team => {
+      team.points = randomInt(10, 100);
+    });
 
-  if (roll < 0.3) {
+    const ordered = [...teams].sort((a, b) => b.points - a.points);
+
+    const loserTeam = ordered[ordered.length - 1];
+
+    if (mode === 'iomsport') {
+      lines.push('El Ram Hakol grita: “Comenzó el Iom Sport”.');
+      lines.push(`Se forman los equipos Rojo, Amarillo, Verde y Azul. Equipo Rojo: ${formatNames((teams.find(t => t.color === 'Rojo') || { players: [] }).players)}. Equipo Amarillo: ${formatNames((teams.find(t => t.color === 'Amarillo') || { players: [] }).players)}. Equipo Verde: ${formatNames((teams.find(t => t.color === 'Verde') || { players: [] }).players)}. Equipo Azul: ${formatNames((teams.find(t => t.color === 'Azul') || { players: [] }).players)}.`);
+      lines.push('El torneo arranca con una mezcla frenética de partidos, carreras, gritos desde las tribunas improvisadas y desafíos físicos cada vez más intensos. Algunos equipos empiezan dominando, otros remontan sobre el final, y la pelea por no terminar últimos mantiene la tensión hasta el último segundo.');
+    } else {
+      lines.push('El Ram Hakol grita: “Comenzó la Zimria”.');
+      lines.push(`Se forman los equipos Rojo, Amarillo, Verde y Azul. Equipo Rojo: ${formatNames((teams.find(t => t.color === 'Rojo') || { players: [] }).players)}. Equipo Amarillo: ${formatNames((teams.find(t => t.color === 'Amarillo') || { players: [] }).players)}. Equipo Verde: ${formatNames((teams.find(t => t.color === 'Verde') || { players: [] }).players)}. Equipo Azul: ${formatNames((teams.find(t => t.color === 'Azul') || { players: [] }).players)}.`);
+      lines.push('La competencia se llena de canciones, actuaciones, baile, instrumentos, escenografías improvisadas y momentos artísticos que sorprenden a todos. Cada equipo intenta emocionar más que el otro, pero al final los jueces toman una decisión y la tabla queda definida por detalles mínimos.');
+    }
+
+    lines.push(`Top ${ordered.length}: 1° ${ordered[0].color} (${ordered[0].points} puntos), 2° ${ordered[1] ? `${ordered[1].color} (${ordered[1].points} puntos)` : '-'}, 3° ${ordered[2] ? `${ordered[2].color} (${ordered[2].points} puntos)` : '-'}, 4° ${ordered[3] ? `${ordered[3].color} (${ordered[3].points} puntos)` : '-'}.`);
+
+    loserTeam.players.forEach(name => {
+      const idx = state.alive.indexOf(name);
+      if (idx !== -1) {
+        state.alive.splice(idx, 1);
+        removeDeadFromAlliances(state, name);
+        if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, name);
+        deaths.push(`${name} — fue eliminado por pertenecer al equipo ${loserTeam.color}, que terminó último en ${mode === 'iomsport' ? 'el Iom Sport' : 'la Zimria'}.`);
+      }
+    });
+
+    lines.push(`El equipo ${loserTeam.color} termina último y queda completamente eliminado: ${formatNames(loserTeam.players)}.`);
+
+    return { lines, deaths };
+  }
+
+  if (Math.random() < 1 / 30) {
+    const victims = [...state.alive];
+
+    lines.push('En la mitad de Majané, ocurre algo imposible: Marshall Mayer revive de la nada.');
+    lines.push('El predio entero queda en silencio. Marshall avanza sin frenar mientras todos intentan escapar, pero los va encontrando uno por uno en cada rincón del campamento.');
+    lines.push('Nadie logra detenerlo. Marshall Mayer elimina a todos los jugadores restantes y gana automáticamente la partida.');
+
+    victims.forEach(name => {
+      const idx = state.alive.indexOf(name);
+      if (idx !== -1) {
+        state.alive.splice(idx, 1);
+        removeDeadFromAlliances(state, name);
+        if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, name);
+        deaths.push(`${name} — fue asesinado por Marshall Mayer tras su regreso en Majané.`);
+      }
+    });
+
+    state.winner = 'Marshall Mayer';
+    return { lines, deaths };
+  }
+
+  if (roll < 0.18) {
+    const result = createTournamentEvent('iomsport');
+    return result;
+  } else if (roll < 0.36) {
+    const result = createTournamentEvent('zimria');
+    return result;
+  } else if (roll < 0.56) {
     const players = shuffle([...state.alive]).slice(0, 2);
     if (players.length < 2) {
       lines.push('No hubo suficientes participantes para el Dogeball especial.');
@@ -800,10 +859,11 @@ function tryInfidelityEvent(state, phaseType) {
     if (loserIndex !== -1) {
       state.alive.splice(loserIndex, 1);
       removeDeadFromAlliances(state, loser);
+      if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, loser);
       lines.push(`${loser} pierde el Dogeball y muere en el enfrentamiento.`);
       deaths.push(`${loser} — murió tras perder un 1v1 de Dogeball.`);
     }
-  } else if (roll < 0.65) {
+  } else if (roll < 0.78) {
     if (state.alive.length < 2) {
       lines.push('No hubo suficientes participantes para organizar el Paintball especial.');
       return { lines, deaths };
@@ -835,6 +895,7 @@ function tryInfidelityEvent(state, phaseType) {
       if (deadIndex !== -1) {
         state.alive.splice(deadIndex, 1);
         removeDeadFromAlliances(state, deadName);
+        if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, deadName);
       }
     });
 
@@ -844,7 +905,7 @@ function tryInfidelityEvent(state, phaseType) {
         deaths.push(`${deadName} — murió tras perder el desafío especial de Paintball.`);
       });
     }
-  } else if (roll < 0.9) {
+  } else if (roll < 0.92) {
     const affectedCount = Math.max(1, Math.min(state.alive.length, randomInt(1, 3)));
     const affected = shuffle([...state.alive]).slice(0, affectedCount);
     lines.push('Un grupo de ladrones entra al predio durante el caos del Día 3.');
@@ -859,6 +920,7 @@ function tryInfidelityEvent(state, phaseType) {
       if (finderIndex !== -1) {
         state.alive.splice(finderIndex, 1);
         removeDeadFromAlliances(state, finder);
+        if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, finder);
       }
       lines.push('La caja explota: era una bomba mortal.');
       deaths.push(`${finder} — murió por la explosión de una caja misteriosa.`);
@@ -869,7 +931,6 @@ function tryInfidelityEvent(state, phaseType) {
 
   return { lines, deaths };
 }
-
     function killVictim(state, victim, forcedKiller) {
       if (!victim || !state.alive.includes(victim) || state.alive.length <= 1) return null;
 
