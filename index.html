@@ -379,6 +379,7 @@ gtag('config', 'G-FJTSH29FWG');
     <section class="screen" id="screen-results">
       <div class="section">
         <div class="status-box" id="progressBox">Todavía no arrancó la simulación.</div>
+        <div class="status-box" id="discoveriesBox">📚 Eventos desbloqueados: 0</div>
         <div class="actions" style="margin-bottom: 12px;">
           <button class="secondary" id="backBtn" type="button">⏮️ Atrás</button>
           <button class="primary" id="continueBtn" type="button">⏭️ Siguiente</button>
@@ -403,6 +404,9 @@ gtag('config', 'G-FJTSH29FWG');
     const continueBtn = document.getElementById('continueBtn');
     const backBtn = document.getElementById('backBtn');
     const progressBox = document.getElementById('progressBox');
+    const discoveriesBox = document.getElementById('discoveriesBox');
+
+    const DISCOVERED_EVENTS_KEY = 'purgaBetelianaDiscoveredEvents';
 
     const allPlaces = [
       'Entrada', 'Provincia', 'La jungla', 'Cuarto de las chelas', 'Baños de Provincia',
@@ -516,6 +520,45 @@ Sharon`;
     function chance(value) {
       return Math.random() < value;
     }
+    function getDiscoveredEvents() {
+  try {
+    const raw = localStorage.getItem(DISCOVERED_EVENTS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveDiscoveredEvents(events) {
+  localStorage.setItem(DISCOVERED_EVENTS_KEY, JSON.stringify(events));
+}
+
+function hasDiscoveredEvent(eventId) {
+  return getDiscoveredEvents().includes(eventId);
+}
+
+function unlockEvent(eventId) {
+  if (!eventId) return false;
+
+  const events = getDiscoveredEvents();
+  if (events.includes(eventId)) return false;
+
+  events.push(eventId);
+  saveDiscoveredEvents(events);
+  updateDiscoveriesBox();
+  return true;
+}
+
+function getDiscoveredEventsCount() {
+  return getDiscoveredEvents().length;
+}
+
+function updateDiscoveriesBox() {
+  if (!discoveriesBox) return;
+  discoveriesBox.textContent = `📚 Eventos desbloqueados: ${getDiscoveredEventsCount()}`;
+}
 
     function escapeHtml(text) {
       return String(text)
@@ -1152,7 +1195,35 @@ if (text.includes('le pide a') || text.includes('se niega')) return `💔 ${text
       if (text.includes('alianza')) return `🤝 ${text}`;
       return `• ${text}`;
     }
+    function detectEventIdsFromLines(lines, type, title = '') {
+  const ids = new Set();
+  const joined = Array.isArray(lines) ? lines.join(' || ') : '';
+  const text = String(joined);
 
+  if (type === 'winner' && text.includes('Marshall Mayer')) ids.add('winner_marshall');
+
+  if (text.includes('Dogeball')) ids.add('day3_dogeball');
+  if (text.includes('Paintball')) ids.add('day3_paintball');
+  if (text.includes('Gogus')) ids.add('day3_gogus');
+  if (text.includes('Iom Sport')) ids.add('day3_iomsport');
+  if (text.includes('Zimria')) ids.add('day3_zimria');
+  if (text.includes('cartel de Majané Ramah') || text.includes('incendio')) ids.add('day3_sign_fire');
+  if (text.includes('ladrones')) ids.add('day3_thieves');
+  if (text.includes('caja misteriosa') || text.includes('La caja explota')) ids.add('day3_mystery_box');
+  if (text.includes('Marshall Mayer revive')) ids.add('day3_marshall');
+
+  if (text.includes('forman una alianza')) ids.add('alliance');
+  if (text.includes('rompen su alianza')) ids.add('broken_alliance');
+  if (text.includes('traiciona')) ids.add('betrayal');
+  if (text.includes('enamor') || text.includes('vínculo romántico')) ids.add('romance');
+  if (text.includes('infiel') || text.includes('engaña')) ids.add('infidelity');
+  if (text.includes('entra en depresión') || text.includes('le pide a') && text.includes('que lo mate')) ids.add('depression_request');
+  if (text.includes('roba recursos')) ids.add('theft');
+
+  if (type === 'deaths' && text.includes('murió')) ids.add('death_report');
+
+  return [...ids];
+}
     function drawWinnerArt(canvas, winnerName, frame = 0) {
       if (!canvas) return;
 
@@ -1658,11 +1729,25 @@ const priority = ['Dogeball', 'Paintball', 'ladrones', 'caja', 'mata', 'muere', 
     }
 
     function renderStoredStep(stepData) {
-      if (!stepData) return;
-      eventsContainer.innerHTML = '';
-      addEventBlock(stepData.title, stepData.lines, stepData.type);
-      progressBox.textContent = stepData.status;
-    }
+  if (!stepData) return;
+
+  eventsContainer.innerHTML = '';
+  addEventBlock(stepData.title, stepData.lines, stepData.type);
+  progressBox.textContent = stepData.status;
+
+  const discoveredIds = detectEventIdsFromLines(stepData.lines, stepData.type, stepData.title);
+  let unlockedNow = 0;
+
+  discoveredIds.forEach(id => {
+    if (unlockEvent(id)) unlockedNow += 1;
+  });
+
+  updateDiscoveriesBox();
+
+  if (unlockedNow > 0) {
+    progressBox.textContent += ` 🔓 Desbloqueaste ${unlockedNow} evento${unlockedNow > 1 ? 's' : ''} nuevo${unlockedNow > 1 ? 's' : ''}.`;
+  }
+}
 
     function buildTimeline(days) {
       const steps = [];
@@ -1675,9 +1760,10 @@ const priority = ['Dogeball', 'Paintball', 'ladrones', 'caja', 'mata', 'muere', 
     }
 
     function setResultsIdle() {
-      eventsContainer.innerHTML = '';
-      progressBox.textContent = 'Todavía no arrancó la simulación.';
-    }
+  eventsContainer.innerHTML = '';
+  progressBox.textContent = 'Todavía no arrancó la simulación.';
+  updateDiscoveriesBox();
+}
 
     function finishSimulation(prefix) {
   if (!simState || simState.finished) return;
@@ -2065,8 +2151,9 @@ function generateFullSimulation() {
     });
 
     namesInput.value = shuffle(randomPool).slice(0, 12).join('\n');
-    setResultsIdle();
-    runBasicTests();
+updateDiscoveriesBox();
+setResultsIdle();
+runBasicTests();
   </script>
 </body>
 </html>
