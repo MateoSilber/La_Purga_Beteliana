@@ -895,11 +895,14 @@ Sharon`;
 
     function decorateLine(line) {
       const text = String(line);
+      
       if (text.includes('Ram Hakol')) return `📢 ${text}`;
       if (text.includes('Dogeball')) return `🏐 ${text}`;
       if (text.includes('Paintball')) return `🎨 ${text}`;
       if (text.includes('ladrones')) return `🕵️ ${text}`;
       if (text.includes('caja misteriosa') || text.includes('caja')) return `🎁 ${text}`;
+      if (text.includes('entra en depresión')) return `💔 ${text}`;
+if (text.includes('le pide a') || text.includes('se niega')) return `💔 ${text}`;
       if (text.includes('mata') || text.includes('muere') || text.includes('traiciona')) return `🔪 ${text}`;
       if (text.includes('recursos')) return `🎒 ${text}`;
       if (text.includes('enamor') || text.includes('romántico') || text.includes('juntos')) return `💘 ${text}`;
@@ -1489,52 +1492,96 @@ const priority = ['Dogeball', 'Paintball', 'ladrones', 'caja', 'mata', 'muere', 
 
       return { lines, deaths };
     }
+    function tryDepressionNightEvent(state) {
+  if (state.alive.length < 2) return null;
 
-    function generateNightPhase(state, remainingDeathsNeeded) {
-      const lines = [];
-      const deaths = [];
+  const pair = shuffle([...state.alive]).slice(0, 2);
+  const depressed = pair[0];
+  const asked = pair[1];
 
-      lines.push(...createGenericPhaseLines('night', state));
+  if (!depressed || !asked || depressed === asked) return null;
 
-      const allianceLine = tryCreateAllianceEvent(state, 'night');
-      if (allianceLine) lines.push(allianceLine);
+  const accepted = Math.random() < 0.5;
 
-      if (!state.hasRomance && state.currentDay === 4 && !getAlliancePairs(state).length && state.alive.length >= 2) {
-        const pair = shuffle([...state.alive]).slice(0, 2);
-        addAlliance(state, pair[0], pair[1]);
-        lines.push(`${pair[0]} y ${pair[1]} deciden confiar el uno en el otro en ${randomItem(state.places)}.`);
-      }
+  if (!accepted) {
+    return {
+      lines: [
+        `${depressed} entra en depresión durante la noche y le pide a ${asked} que lo mate para terminar con todo.`,
+        `${asked} se niega, y ${depressed} sobrevive la noche aunque queda completamente destruido emocionalmente.`
+      ],
+      death: null
+    };
+  }
 
-      const betrayal = tryBetrayalEvent(state);
-      if (betrayal) {
-        lines.push(betrayal.line);
-        deaths.push(betrayal.death);
-      }
+  const idx = state.alive.indexOf(depressed);
+  if (idx !== -1) {
+    state.alive.splice(idx, 1);
+    removeDeadFromAlliances(state, depressed);
+  }
 
-      if (deaths.length < remainingDeathsNeeded) {
-        const directKill = tryDirectKill(state, 'night');
-        if (directKill) {
-          lines.push(directKill.event);
-          deaths.push(directKill.death);
-        }
-      }
+  state.killCount[asked] = (state.killCount[asked] || 0) + 1;
 
-      if (deaths.length < remainingDeathsNeeded) {
-        const accident = tryAccidentDeath(state, 'night');
-        if (accident) {
-          lines.push(accident.event);
-          deaths.push(accident.death);
-        }
-      }
+  return {
+    lines: [
+      `${depressed} entra en depresión durante la noche y le pide a ${asked} que lo mate para terminar con todo.`,
+      `${asked} acepta y, en el silencio de la noche, termina con la vida de ${depressed}.`
+    ],
+    death: `${depressed} — fue asesinado por ${asked} después de pedirle que lo matara.`
+  };
+}
+function generateNightPhase(state, remainingDeathsNeeded) {
+  const lines = [];
+  const deaths = [];
 
-      const romanceLine = tryRomanceEvent(state, !state.hasRomance && state.currentDay === 4);
-      if (romanceLine) {
-        lines.push(romanceLine);
-        state.hasRomance = true;
-      }
+  lines.push(...createGenericPhaseLines('night', state));
 
-      return { lines, deaths };
+  const allianceLine = tryCreateAllianceEvent(state, 'night');
+  if (allianceLine) lines.push(allianceLine);
+
+  if (!state.hasRomance && state.currentDay === 4 && !getAlliancePairs(state).length && state.alive.length >= 2) {
+    const pair = shuffle([...state.alive]).slice(0, 2);
+    addAlliance(state, pair[0], pair[1]);
+    lines.push(`${pair[0]} y ${pair[1]} deciden confiar el uno en el otro en ${randomItem(state.places)}.`);
+  }
+
+  if (Math.random() < 0.30) {
+    const depressionEvent = tryDepressionNightEvent(state);
+    if (depressionEvent) {
+      lines.push(...depressionEvent.lines);
+      if (depressionEvent.death) deaths.push(depressionEvent.death);
     }
+  }
+
+  const betrayal = tryBetrayalEvent(state);
+  if (betrayal) {
+    lines.push(betrayal.line);
+    deaths.push(betrayal.death);
+  }
+
+  if (deaths.length < remainingDeathsNeeded) {
+    const directKill = tryDirectKill(state, 'night');
+    if (directKill) {
+      lines.push(directKill.event);
+      deaths.push(directKill.death);
+    }
+  }
+
+  if (deaths.length < remainingDeathsNeeded) {
+    const accident = tryAccidentDeath(state, 'night');
+    if (accident) {
+      lines.push(accident.event);
+      deaths.push(accident.death);
+    }
+  }
+
+  const romanceLine = tryRomanceEvent(state, !state.hasRomance && state.currentDay === 4);
+  if (romanceLine) {
+    lines.push(romanceLine);
+    state.hasRomance = true;
+  }
+
+  return { lines, deaths };
+}
 
     function createForcedDeathEvent(state, phaseType) {
       if (state.alive.length <= 1) return null;
