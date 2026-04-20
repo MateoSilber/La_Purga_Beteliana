@@ -784,15 +784,14 @@ function tryInfidelityEvent(state, phaseType) {
     });
 
     const ordered = [...teams].sort((a, b) => b.points - a.points);
-
     const loserTeam = ordered[ordered.length - 1];
 
     if (mode === 'iomsport') {
-      lines.push('El Ram Hakol grita: “🎽Comenzó el Iom Sport”.');
+      lines.push('El Ram Hakol grita: “Comenzó el Iom Sport”.');
       lines.push(`Se forman los equipos Rojo, Amarillo, Verde y Azul. 🔴Equipo Rojo: ${formatNames((teams.find(t => t.color === 'Rojo') || { players: [] }).players)}. 🟡Equipo Amarillo: ${formatNames((teams.find(t => t.color === 'Amarillo') || { players: [] }).players)}. 🟢Equipo Verde: ${formatNames((teams.find(t => t.color === 'Verde') || { players: [] }).players)}. 🔵Equipo Azul: ${formatNames((teams.find(t => t.color === 'Azul') || { players: [] }).players)}.`);
       lines.push('El torneo arranca con una mezcla frenética de partidos, carreras, gritos desde las tribunas improvisadas y desafíos físicos cada vez más intensos. Algunos equipos empiezan dominando, otros remontan sobre el final, y la pelea por no terminar últimos mantiene la tensión hasta el último segundo.');
     } else {
-      lines.push('El Ram Hakol grita: “🎭Comenzó la Zimria”.');
+      lines.push('El Ram Hakol grita: “Comenzó la Zimria”.');
       lines.push(`Se forman los equipos Rojo, Amarillo, Verde y Azul. 🔴Equipo Rojo: ${formatNames((teams.find(t => t.color === 'Rojo') || { players: [] }).players)}. 🟡Equipo Amarillo: ${formatNames((teams.find(t => t.color === 'Amarillo') || { players: [] }).players)}. 🟢Equipo Verde: ${formatNames((teams.find(t => t.color === 'Verde') || { players: [] }).players)}. 🔵Equipo Azul: ${formatNames((teams.find(t => t.color === 'Azul') || { players: [] }).players)}.`);
       lines.push('La competencia se llena de canciones, actuaciones, baile, instrumentos, escenografías improvisadas y momentos artísticos que sorprenden a todos. Cada equipo intenta emocionar más que el otro, pero al final los jueces toman una decisión y la tabla queda definida por detalles mínimos.');
     }
@@ -814,12 +813,14 @@ function tryInfidelityEvent(state, phaseType) {
     return { lines, deaths };
   }
 
-  if (Math.random() < 1 / 50) {
+  if (Math.random() < 1 / 30) {
     const victims = [...state.alive];
 
+    lines.push('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
     lines.push('En la mitad de Majané, ocurre algo imposible: Marshall Mayer revive de la nada.');
     lines.push('El predio entero queda en silencio. Marshall avanza sin frenar mientras todos intentan escapar, pero los va encontrando uno por uno en cada rincón del campamento.');
     lines.push('Nadie logra detenerlo. Marshall Mayer elimina a todos los jugadores restantes y gana automáticamente la partida.');
+    lines.push('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
 
     victims.forEach(name => {
       const idx = state.alive.indexOf(name);
@@ -836,40 +837,65 @@ function tryInfidelityEvent(state, phaseType) {
   }
 
   if (roll < 0.18) {
-    const result = createTournamentEvent('iomsport');
-    return result;
+    return createTournamentEvent('iomsport');
   } else if (roll < 0.27) {
-  if (state.alive.length < 3) {
-    lines.push('No hubo suficientes participantes para el evento de las Gogus.');
-    return { lines, deaths };
-  }
-
-  const fightersCount = Math.min(5, state.alive.length);
-  const fighters = shuffle([...state.alive]).slice(0, fightersCount);
-
-  lines.push('El Ram Hakol anuncia por altavoz: “Se dejaron 3 Gogus en el Jadara”.');
-  lines.push(`${formatNames(fighters)} son seleccionados para pelear a muerte por ellas.`);
-  lines.push('El Jadara se convierte en un caos total: gritos, empujones, golpes y desesperación. Nadie quiere quedarse sin recursos y la pelea escala rápidamente a un nivel brutal donde solo sobrevivirán muy pocos.');
-
-  const survivorsCount = fighters.length <= 2 ? 1 : randomInt(1, 2);
-  const survivors = shuffle([...fighters]).slice(0, survivorsCount);
-  const deadPlayers = fighters.filter(name => !survivors.includes(name));
-
-  deadPlayers.forEach(name => {
-    const idx = state.alive.indexOf(name);
-    if (idx !== -1) {
-      state.alive.splice(idx, 1);
-      removeDeadFromAlliances(state, name);
-      if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, name);
-      deaths.push(`${name} — murió peleando por las Gogus en el Jadara.`);
+    if (state.alive.length < 3) {
+      lines.push('No hubo suficientes participantes para el evento de las Gogus.');
+      return { lines, deaths };
     }
-  });
 
-  lines.push(`${formatNames(survivors)} ${survivors.length > 1 ? 'logran' : 'logra'} quedarse con las 3 Gogus.`);
-  lines.push(`Mueren en la pelea del Jadara: ${formatNames(deadPlayers)}.`);} else if (roll < 0.36) {
-    const result = createTournamentEvent('zimria');
-    return result;
-  } else if (roll < 0.56) {
+    const fightersCount = Math.min(5, state.alive.length);
+    const fighters = shuffle([...state.alive]).slice(0, fightersCount);
+
+    lines.push('El Ram Hakol anuncia por altavoz: “Se dejaron 3 Gogus en el Jadara”.');
+    lines.push(`${formatNames(fighters)} son seleccionados para pelear a muerte por ellas.`);
+    lines.push('El Jadara se convierte en un caos total: gritos, empujones, golpes y desesperación. Nadie quiere quedarse con las manos vacías y la pelea escala rápidamente a un nivel brutal donde casi todos terminan muertos.');
+
+    const survivorsCount = fighters.length <= 2 ? 1 : randomInt(1, 2);
+    const survivors = shuffle([...fighters]).slice(0, survivorsCount);
+    const deadPlayers = fighters.filter(name => !survivors.includes(name));
+
+    deadPlayers.forEach(name => {
+      const idx = state.alive.indexOf(name);
+      if (idx !== -1) {
+        state.alive.splice(idx, 1);
+        removeDeadFromAlliances(state, name);
+        if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, name);
+        deaths.push(`${name} — murió peleando por las Gogus en el Jadara.`);
+      }
+    });
+
+    lines.push(`${formatNames(survivors)} ${survivors.length > 1 ? 'logran' : 'logra'} quedarse con las 3 Gogus.`);
+    lines.push(`Mueren en la pelea del Jadara: ${formatNames(deadPlayers)}.`);
+  } else if (roll < 0.34) {
+    if (state.alive.length < 3) {
+      lines.push('El cartel de Majané Ramah se incendia, pero no hay suficientes personas cerca para que ocurra una tragedia.');
+      return { lines, deaths };
+    }
+
+    const affected = shuffle([...state.alive]).slice(0, 3);
+    const deadPlayers = affected.slice(0, 2);
+    const injured = affected[2];
+
+    lines.push('De repente, el cartel de Majané Ramah se prende fuego sin explicación.');
+    lines.push('Las llamas crecen rápidamente y el caos se apodera del lugar mientras varios intentan escapar desesperadamente.');
+    lines.push(`${formatNames(affected)} quedan atrapados cerca del incendio.`);
+
+    deadPlayers.forEach(name => {
+      const idx = state.alive.indexOf(name);
+      if (idx !== -1) {
+        state.alive.splice(idx, 1);
+        removeDeadFromAlliances(state, name);
+        if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, name);
+        deaths.push(`${name} — murió quemado en el incendio del cartel de Majané Ramah.`);
+      }
+    });
+
+    lines.push(`${formatNames(deadPlayers)} ${deadPlayers.length > 1 ? 'mueren' : 'muere'} por las quemaduras del incendio.`);
+    lines.push(`${injured} logra escapar, pero queda muy herido.`);
+  } else if (roll < 0.52) {
+    return createTournamentEvent('zimria');
+  } else if (roll < 0.70) {
     const players = shuffle([...state.alive]).slice(0, 2);
     if (players.length < 2) {
       lines.push('No hubo suficientes participantes para el Dogeball especial.');
@@ -891,7 +917,7 @@ function tryInfidelityEvent(state, phaseType) {
       lines.push(`${loser} pierde el Dogeball y muere en el enfrentamiento.`);
       deaths.push(`${loser} — murió tras perder un 1v1 de Dogeball.`);
     }
-  } else if (roll < 0.78) {
+  } else if (roll < 0.88) {
     if (state.alive.length < 2) {
       lines.push('No hubo suficientes participantes para organizar el Paintball especial.');
       return { lines, deaths };
@@ -933,7 +959,7 @@ function tryInfidelityEvent(state, phaseType) {
         deaths.push(`${deadName} — murió tras perder el desafío especial de Paintball.`);
       });
     }
-  } else if (roll < 0.92) {
+  } else if (roll < 0.96) {
     const affectedCount = Math.max(1, Math.min(state.alive.length, randomInt(1, 3)));
     const affected = shuffle([...state.alive]).slice(0, affectedCount);
     lines.push('Un grupo de ladrones entra al predio durante el caos del Día 3.');
@@ -1113,6 +1139,9 @@ function tryInfidelityEvent(state, phaseType) {
       if (text.includes('Paintball')) return `🎨 ${text}`;
       if (text.includes('ladrones')) return `🕵️ ${text}`;
       if (text.includes('Gogus')) return `🥤 ${text}`;
+      if (text.includes('Zimria')) return `🎤 ${text}`;
+      if (text.includes('Iom Sport')) return `🏅 ${text}`;
+      if (text.includes('incendio') || text.includes('fuego') || text.includes('quema')) return `🔥 ${text}`;
       if (text.includes('caja misteriosa') || text.includes('caja')) return `🎁 ${text}`;
       if (text.includes('infiel') || text.includes('engaña') || text.includes('engañó')) return `💔 ${text}`;
       if (text.includes('entra en depresión')) return `💔 ${text}`;
