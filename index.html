@@ -838,7 +838,35 @@ function tryInfidelityEvent(state, phaseType) {
   if (roll < 0.18) {
     const result = createTournamentEvent('iomsport');
     return result;
-  } else if (roll < 0.36) {
+  } else if (roll < 0.27) {
+  if (state.alive.length < 3) {
+    lines.push('No hubo suficientes participantes para el evento de las Gogus.');
+    return { lines, deaths };
+  }
+
+  const fightersCount = Math.min(5, state.alive.length);
+  const fighters = shuffle([...state.alive]).slice(0, fightersCount);
+
+  lines.push('El Ram Hakol anuncia por altavoz: “Se dejaron 3 Gogus en el Jadara”.');
+  lines.push(`${formatNames(fighters)} son seleccionados para pelear a muerte por ellas.`);
+  lines.push('El Jadara se convierte en un caos total: gritos, empujones, golpes y desesperación. Nadie quiere quedarse sin recursos y la pelea escala rápidamente a un nivel brutal donde solo sobrevivirán muy pocos.');
+
+  const survivorsCount = fighters.length <= 2 ? 1 : randomInt(1, 2);
+  const survivors = shuffle([...fighters]).slice(0, survivorsCount);
+  const deadPlayers = fighters.filter(name => !survivors.includes(name));
+
+  deadPlayers.forEach(name => {
+    const idx = state.alive.indexOf(name);
+    if (idx !== -1) {
+      state.alive.splice(idx, 1);
+      removeDeadFromAlliances(state, name);
+      if (typeof removeDeadFromRomances === 'function') removeDeadFromRomances(state, name);
+      deaths.push(`${name} — murió peleando por las Gogus en el Jadara.`);
+    }
+  });
+
+  lines.push(`${formatNames(survivors)} ${survivors.length > 1 ? 'logran' : 'logra'} quedarse con las 3 Gogus.`);
+  lines.push(`Mueren en la pelea del Jadara: ${formatNames(deadPlayers)}.`);} else if (roll < 0.36) {
     const result = createTournamentEvent('zimria');
     return result;
   } else if (roll < 0.56) {
@@ -1084,6 +1112,7 @@ function tryInfidelityEvent(state, phaseType) {
       if (text.includes('Dogeball')) return `🏐 ${text}`;
       if (text.includes('Paintball')) return `🎨 ${text}`;
       if (text.includes('ladrones')) return `🕵️ ${text}`;
+      if (text.includes('Gogus')) return `🥤 ${text}`;
       if (text.includes('caja misteriosa') || text.includes('caja')) return `🎁 ${text}`;
       if (text.includes('infiel') || text.includes('engaña') || text.includes('engañó')) return `💔 ${text}`;
       if (text.includes('entra en depresión')) return `💔 ${text}`;
